@@ -1,0 +1,31 @@
+{
+  "name": "native-calls-report",
+  "preferGlobal": true,
+  "version": "0.0.1",
+  "author": "Mohamed Eltuhamy <tuhamy@gmail.com>",
+  "description": "the final report for the Native Calls project.",
+  "contributors": [ 
+    {
+      "name": "Mohamed Eltuhamy",
+      "email": "tuhamy@gmail.com"
+    } 
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meltuhamy/native-calls-report.git"
+  },
+  "keywords": [
+    "native-client",
+    "nacl",
+    "native-calls"
+  ],
+
+  "analyze": false,
+  "devDependencies": {
+    "latex-watcher"    :  "0.0.3"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.10.23"
+  }
+}
