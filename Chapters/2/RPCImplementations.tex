@@ -1,24 +1,22 @@
-\section{RPC Implementations}
+\section{RPC Implementations} % (fold)
+\label{sec:rpc_implementations}
 
-%---------------------------------------------------------------------------------------------------------------------%
-% ONC RPC
-%---------------------------------------------------------------------------------------------------------------------%
+\subsection{Open Network Computing (ONC) RPC} % (fold)
+\label{sub:oncrpc_intro}
 
-\subsection{Open Network Computing (ONC) RPC}
-\label{ONCRPCBackgroundSection} 
 ONC is a suite of software originally developed and released in 1985 by Sun Microsystems\cite{stevens2004unix}. It provides a RPC system along with an External Data Representation (XDR) format used alongside it. The ONC RPC system implements some tools and libraries that make it easy for developers to specify and use remote functions. These are:
 
 \begin{enumerate}
 	\item \textbf{RPCGen Compiler:} As mentioned earlier, the role of the user and server stubs is to pack and unpack arguments and results of function calls. To pack the arguments, the stub looks at the argument types and matches them with the number of arguments and their types of the server (callee) function definition. Thus, the stubs need to be written with knowledge of the interface of the actual procedures that will be called. We can define these interfaces in an abstract way, so that we could generate these stubs automatically even if the languages used in the different endpoints are different. In ONC RPC and many other systems, this abstract representation is in the form of an Interface Definition Language (IDL) file. When we pass the IDL file into the RPCGen compiler, it automatically generates the stubs we need to perform remote procedure calls.
 	\item \textbf{XDR Routines:} These convert the types of the parameters and return values to and from the external data representation. XDR routines exist for many C types, and the system allows you to write your own XDR routines for complex types.
-	\item \textbf{RPC API library:} This is an implementation that fulfils the role of the RPCRuntime described in \ref{RPCRuntimeBackgroundSection}. It provides a set of API functions that set up the lower level communication details, binding, and so on.
+	\item \textbf{RPC API library:} This is an implementation that fulfils the role of the RPCRuntime described in \ref{sub:rpcruntime_background}. It provides a set of API functions that set up the lower level communication details, binding, and so on.
 \end{enumerate}
 
 Remote procedures in ONC RPC are identified by a program number, a version number, and a procedure number. There also exists a port mapper that map the program number to a port, so that several programs can run on the same remote machine. 
 
 \subsubsection{XDR files}
 \label{sec:xdrsyntax}
-In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{ONCRPCBackgroundSection}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
+In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{sub:oncrpc_intro}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
 
 \lstset{language=c,caption={An example RPC definition for a key-pair generator function},label=samplerpc}
 \begin{lstlisting}
@@ -66,10 +64,15 @@ generate_keypair_0_svc(char **argp, struct svc_req *rqstp)
 
 Finally, we call the remote procedure from the client, which includes the same header file and simply calls \lstinline+generate_keypair_0+, passing in the string parameter.
 
+% subsection oncrpc_intro (end)
+
+
 %---------------------------------------------------------------------------------------------------------------------%
 % CORBA
 %---------------------------------------------------------------------------------------------------------------------%
-\subsection{Common Object Request Broker Architecture (CORBA)}
+\subsection{Common Object Request Broker Architecture (CORBA)} % (fold)
+\label{sub:corba_intro}
+
 CORBA is a RPC implementation introduced in 1991 by the Object Management Group (OMG) to address some issues with existing RPC implementations and provide more features for object oriented programming.
 
 Remote method calls on objects revolve around the use of the Object Request Broker (ORB)\cite{isocorba}. A client invokes a remote object by sending a request through the ORB. The ORB locates the object on the server, and handles the communication of the remote call from the client to that object, including parameter and result packing. The client is statically aware of the objects it could invoke through the use of IDL (known as OMG IDL) stubs. These specify everything about the remote object except the implementation itself. This includes the names of classes, method interfaces, and fields. The OMG IDL is independent of any language, and bindings exist for several languages. 
@@ -85,12 +88,14 @@ Remote objects could also be invoked dynamically at runtime, as CORBA supports d
 
 TODO: Write more about CORBA using the CORBA paper. \cite{vinoski1997corba}
 
+% subsection corba_intro (end)
+
 
 %---------------------------------------------------------------------------------------------------------------------%
 % JSON-RPC and XML-RPC
 %---------------------------------------------------------------------------------------------------------------------%
-\subsection{JSON-RPC and XML-RPC}
-\label{sec:XMLJSOBRPC}
+\subsection{JSON-RPC and XML-RPC} % (fold)
+\label{sub:json_xml_rpc_intro}
 XML-RPC is a simple RPC protocol which uses XML (Extended Mark-up Language) to define remote method calls and responses. It uses explicit data typing - the method name and parameters are hard-coded in the message itself. Messages are typically transported to remote servers over HTTP\footnote{Hyper-text transport protocol (HTTP) is the most common transfer protocol used by clients and servers to transfer data on the web}. Many implementations of XML-RPC exist in several different languages. 
 
 For example, we could represent the RPC function call we defined before (Listing \ref{samplerpc}) as the XML-RPC function call shown in Listing \ref{examplexmlcall}.
@@ -160,12 +165,10 @@ XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a si
 \end{lstlisting}
 
 Both XML-RPC and JSON-RPC have well-defined protocols \cite{jsonrpcspec}\cite{xmlrpcspec}, and are implemented in many different languages.
+% subsection json_xml_rpc_intro (end)
 
-% \subsection{Apache Thrift}
-% Apache Thrift is another RPC system designed and open-sourced by Facebook in the Apache project. It provides a way to implement scalable, cross-language services \cite{thrift}.
-
-
-\subsection{WebIDL}
+\subsection{WebIDL} % (fold)
+\label{sub:webidl_intro}
 WebIDL is a specification \cite{webidlw3c} for an interface definition language that can be used by web browsers. It is used in several projects, including Google Chrome's Blink project\footnote{\lstinline{http://www.chromium.org/blink/webidl}}.
 
 The WebIDL syntax is similar to ONC RPC's XDR syntax (see section \ref{sec:xdrsyntax}). Listing \ref{webIDLExample} shows the same interface as Listing \ref{samplerpc}, but this time using WebIDL.
@@ -186,4 +189,8 @@ Just like in ONC RPC, the WebIDL files can be parsed and used to generate stub m
 
 Open source parsers exist for WebIDL, and a standard-compliant one is provided in the Chromium project\footnote{\lstinline+https://code.google.com/p/chromium/codesearch#chromium/src/tools/idl_parser/idl_parser.py+}. 
 
-There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from: https://github.com/esrille/esidl and documentation can be found here: http://code.google.com/p/es-operating-system/wiki/esidl}. Similarly, bindings for JavaScript also exist\footnote{https://github.com/extensibleweb/webidl.js}. 
+There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from: \lstinline+https://github.com/esrille/esidl+}. Similarly, bindings for JavaScript also exist\footnote{\lstinline+https://github.com/extensibleweb/webidl.js+}. 
+
+% subsection webidl_intro (end)
+
+% section rpc_implementations (end)

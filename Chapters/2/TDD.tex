@@ -1,0 +1,55 @@
+\section{Test Driven Development} % (fold)
+\label{sec:test_driven_development}
+Test Driven Development (TDD) is a software development approach whereby the developer writes unit-tests that describe some functionality first, then implements the functionality in order to make the tests pass.
+
+The project includes several tests for each component of the system. Unit tests are written to test fine-grained functionality (e.g. functions), while end-to-end (E2E) tests have been written to test large parts of the system as a whole.
+
+Because the project is implemented on both C++ and JavaScript, tests had to be written for each of these languages. Thus, the project includes the following tests:
+
+\begin{itemize}
+	\item JavaScript library tests: These test the functionality of each component of the JavaScript library. The tests run on the browser.
+	\item Generator tests: These test the functionality of the JS and C++ generators.
+	\item C++ library tests: These test the functionality of the C++ RPC library.
+	\item E2E tests: These are test applications written to test the `full stack': starting from code generation, compilation, and all the way down to individual RPC call requests.
+\end{itemize}
+
+\subsection{Karma Test Runner} % (fold)
+\label{sub:karma_test_runner}
+Karma test runner\footnote{\lstinline+http://karma-runner.github.io/+} is a library implemented at Google that makes running JavaScript tests easy. It was designed to simplify and speed up test-driven development for JavaScript. It works by letting the developer specify a configuration that states which files should be loaded, then the tests are run directly from the command line. This means the developer does not need to open a browser manually every time they want to run the tests.
+
+Karma has been used extensively in this project to test the client side JavaScript and C++. More about configuring Karma to load C++ tests is described in the design section.
+%TODO: link
+
+% subsection karma_test_runner (end)
+
+\subsection{JavaScript Testing Framework} % (fold)
+\label{sub:js_test_framework}
+Many testing frameworks exists for JavaScript. The most popular are Jasmine\footnote{\lstinline+http://jasmine.github.io/+}, QUnit\footnote{\lstinline+http://qunitjs.com/+} and Mocha\footnote{\lstinline+http://visionmedia.github.io/mocha/+}. All of them support a similar set of features and APIs. 
+
+\begin{itemize}
+	\item Jasmine: %TODO
+	\item QUnit:  %TODO
+	\item Mocha: %TODO
+\end{itemize}
+
+In the end, I decided to use Jasmine for its straight-forward set up and easy configuration with Karma.
+
+% subsection js_test_framework (end)
+
+\subsection{C++ Testing Framework} % (fold)
+\label{sub:cpp_testing}
+Again, many unit testing frameworks and libraries exist for C++. The most popular are CppUnit, googletest, and the Boost test library.
+
+\begin{itemize}
+	\item CppUnit
+	\item googletest
+	\item Boost
+\end{itemize}
+
+Google Mock (gmock) is a powerful library that allows mocking classes in C++. Mocking makes it easier to test different components of a system without requiring the actual implementation. gmock can be used with any testing framework, and it is one of the most mature mocking libraries for C++ available.
+
+I decided to use googletest for its simpler syntax, portability (as it was included with the NaCl SDK) and the fact it was easy to integrate gmock for mocking classes.
+
+% subsection c_testing_using_gtest_and_gmock (end)
+
+% section cpp_testing (end)
