@@ -18,16 +18,16 @@ TODO.
 \label{sec:apache_thrift_cross_language_services}
 Apache Thrift is a framework that allows cross-language services development. Originally developed at Facebook, it was designed to provide reliable, efficient communication between languages and services. Many languages are supported, including C++, Java, and JavaScript. Thrift provides a cross-platform generator that can generate Thrift client and server pairs, where the client and server can be using different languages. Similar to other RPC frameworks, it uses its own IDL file format, Thrift IDL. The IDL file is used to generate code to support different languages.
 
-An unofficial port for Apache Thrift has been made for Native Client \footnote{\lstinline+https://github.com/ahilss/thrift-nacl+}, however, all of the communication code is still hand coded. The performance of using Thrift for Native Client is unclear, as there is no protocol implemented using PPAPI.
+An unofficial port for Apache Thrift has been made for Native Client \footnote{\url{https://github.com/ahilss/thrift-nacl}}, however, all of the communication code is still hand coded. The performance of using Thrift for Native Client is unclear, as there is no protocol implemented using PPAPI.
 
 % section apache_thrift_cross_language_services (end)
 
 \section{pmrpc: Inter-window JavaScript RPC using postMessage} % (fold)
 \label{sec:pmrpc_json_rpc_using_postmessage}
-pmrpc is an open source library available on GitHub \footnote{\lstinline+https://github.com/izuzak/pmrpc+} which aims to simplify cross-window communication by using postMessage. It shows the simplicity of remote procedure calls using JSON-RPC but only supports browser-based JavaScript. Native Client C++ or any other language or transport is not supported.
+pmrpc is an open source library available on GitHub \footnote{\url{https://github.com/izuzak/pmrpc}} which aims to simplify cross-window communication by using postMessage. It shows the simplicity of remote procedure calls using JSON-RPC but only supports browser-based JavaScript. Native Client C++ or any other language or transport is not supported.
 % section pmrpc_json_rpc_using_postmessage (end)
 
 \section{Other JSON-RPC Implementations} % (fold)
 \label{sec:json_rpc_implementations}
-Many JSON-RPC implementations for several languages exist\footnote{\lstinline+http://en.wikipedia.org/wiki/JSON-RPC#Implementations+}, including C++\footnote{\lstinline+http://jsonrpc-cpp.sourceforge.net/+} and JavaScript\footnote{\lstinline+https://github.com/gimmi/jsonrpcjs+}. However, none have been implemented for Native Client and using the PPAPI API.
+Many JSON-RPC implementations for several languages exist\footnote{\url{http://en.wikipedia.org/wiki/JSON-RPC}}, including C++\footnote{\url{http://jsonrpc-cpp.sourceforge.net/}} and JavaScript\footnote{\url{https://github.com/gimmi/jsonrpcjs}}. However, none have been implemented for Native Client and using the PPAPI API.
 % section json_rpc_implementations (end)

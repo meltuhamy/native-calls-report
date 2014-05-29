@@ -169,7 +169,7 @@ Both XML-RPC and JSON-RPC have well-defined protocols \cite{jsonrpcspec}\cite{xm
 
 \subsection{WebIDL} % (fold)
 \label{sub:webidl_intro}
-WebIDL is a specification \cite{webidlw3c} for an interface definition language that can be used by web browsers. It is used in several projects, including Google Chrome's Blink project\footnote{\lstinline{http://www.chromium.org/blink/webidl}}.
+WebIDL is a specification \cite{webidlw3c} for an interface definition language that can be used by web browsers. It is used in several projects, including Google Chrome's Blink project\footnote{\url{http://www.chromium.org/blink/webidl}}.
 
 The WebIDL syntax is similar to ONC RPC's XDR syntax (see section \ref{sec:xdrsyntax}). Listing \ref{webIDLExample} shows the same interface as Listing \ref{samplerpc}, but this time using WebIDL.
 
@@ -187,9 +187,10 @@ interface KEYPAIRGEN {
 
 Just like in ONC RPC, the WebIDL files can be parsed and used to generate stub methods for the client and server. Because they are language independent, the client and server files that are generated could be in different languages. 
 
-Open source parsers exist for WebIDL, and a standard-compliant one is provided in the Chromium project\footnote{\lstinline+https://code.google.com/p/chromium/codesearch#chromium/src/tools/idl_parser/idl_parser.py+}. 
+Open source parsers exist for WebIDL, and a standard-compliant one is provided in the Chromium project
+\footnote{ \url{http://goo.gl/kAnGCU} }. 
 
-There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from: \lstinline+https://github.com/esrille/esidl+}. Similarly, bindings for JavaScript also exist\footnote{\lstinline+https://github.com/extensibleweb/webidl.js+}. 
+There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from: \url{https://github.com/esrille/esidl}}. Similarly, bindings for JavaScript also exist\footnote{\url{https://github.com/extensibleweb/webidl.js}}. 
 
 % subsection webidl_intro (end)
 
