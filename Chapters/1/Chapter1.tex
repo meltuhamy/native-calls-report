@@ -12,7 +12,7 @@ Native Client \cite{nacl} (NaCl) is a technology from Google that allows running
 The native code is typically written in C++, though other languages can be supported. The code is compiled and the binary application is sandboxed by verifying the code to ensure no potentially un-secure instructions or system-calls are made. This is done by compiling the source code using the gcc\footnote{The GNU Compiler Collection (gcc) is an open-source compiler that supports C, C++, and other languages \cite{gcc}} based NaCl compiler. This generates a NaCl module that can be embedded into the web page. Because no system calls can be made, the only way an application can communicate with the operating system (for example, to play audio) is through the web browser, which supports several APIs in JavaScript that are secure to use and also cross-platform. This means that the fast-performing C++ application needs to communicate with the JavaScript web application.
 
 \lstset{language=c,caption={JavaScript code},label=javascriptcode}
-\begin{lstlisting}
+\begin{code}
 // Send a message to the NaCl module
 function sendHello () {
   if (HelloTutorialModule) {
@@ -28,17 +28,17 @@ function sendHello () {
 function handleMessage(message_event) {
   console.log("NACL: " + message_event.data);
 }
-\end{lstlisting}
+\end{code}
 
 
 \lstset{language=c,caption={C++ Code},label=cppcode}
-\begin{lstlisting}
+\begin{code}
 // Handle a message coming from JavaScript
 virtual void HandleMessage(const pp::Var& var_message) {
   // Send a message to JavaScript
   PostMessage(var_message);
 }
-\end{lstlisting}
+\end{code}
 
 The way Native Client modules can communicate with the JavaScript web application (and vice versa) is through simple message passing. The JavaScript web application sends a message in the form of a JavaScript string to the NaCl module. The NaCl module handles message events by receiving this string as a parameter passed into the \lstinline+HandleMessage+ function. For example, Listing \ref{javascriptcode} shows a simplified example of how JavaScript sends a message to the NaCl module, and Listing \ref{cppcode} shows how the native module handles the message and sends the same message back to the JavaScript application. This allows for straight forward, asynchronous communication between the native code and the web application. Modern web browsers support message passing using the \lstinline+postMessage+ API. This was designed to allow web applications to communicate with one or more web workers
 \footnote{Web workers\cite{webworkersw3c} are scripts that run in the background of a web page, independent of the web page itself. It is a way of carrying out computations while not blocking the main page's execution. Although they allow concurrency, they are relatively heavyweight and are not intended to be spawned in large numbers. Typically a web application would have one web worker to carry out computations, and the main page to do most of the view logic (such as click listening, etc.)}. 

@@ -18,7 +18,7 @@ This section gives an overview of some of the different message formats that can
 	Although XML and JSON are both intended to be human-readable, JSON is often more readable. JSON is also more compact, as it requires less syntax to represent complex structures, in contrast to XML which requires opening and closing tags. Here is an example of representing a phone book in XML and JSON.
 
 	\lstset{language=c,caption={Representing a phone book using JSON},label=phonebookjson}
-	\begin{lstlisting}
+	\begin{code}
 [
 	{
 		"name" : "John Smith",
@@ -31,9 +31,9 @@ This section gives an overview of some of the different message formats that can
 		"phonenumber": "+442383045711"
 	},
 ]
-	\end{lstlisting}
+	\end{code}
 	\lstset{language=xml,caption={Representing a phone book using XML},label=phonebookjson}
-	\begin{lstlisting}
+	\begin{code}
 <numbers type="array">
     <entry>
     	<field name="name">John Smith</field>
@@ -46,7 +46,7 @@ This section gives an overview of some of the different message formats that can
     	<field name="phonenumber">+442383045711</field>
     </entry>
 </numbers>
-	\end{lstlisting}
+	\end{code}
 
 	The XML would also need to be parsed to make sense of the data. For example, a `field' tag could be parsed and converted into a C++ data structure, but that would require us to understand the structure we're using. Sometimes the structure is well defined, like in the XML-RPC protocol (see Section \ref{sub:json_xml_rpc_intro}). However, this strict parsing requirement is easier to error check, since if the XML was parsed successfully, we can be more confident that the data type is correct. 
 
@@ -58,7 +58,7 @@ This section gives an overview of some of the different message formats that can
 	~\\
 
 	\lstset{language=c,caption={A .proto file},label=exampleproto}
-	\begin{lstlisting}
+	\begin{code}
 message Person {
   required string name = 1;
   required int32 id = 2;
@@ -77,12 +77,12 @@ message Person {
 
   repeated PhoneNumber phone = 4;
 }
-	\end{lstlisting}
+	\end{code}
 
 	The .proto file is then parsed and compiled, to generate data access classes used to change the content of an instance of the representation. They also provide the methods required for serialization. These methods are shown in Listing \ref{exampleprotoserialisation}. When serialised data is converted to raw binary.
 
 	\lstset{language=c,caption={Manipulating and serialising a .proto-generated class},label=exampleprotoserialisation}
-	\begin{lstlisting}
+	\begin{code}
 // Serialization
 Person person;
 person.set_name("John Doe");
@@ -97,7 +97,7 @@ Person person;
 person.ParseFromIstream(&input);
 cout << "Name: " << person.name() << endl;
 cout << "E-mail: " << person.email() << endl;
-	\end{lstlisting}
+	\end{code}
 
 
 	Many RPC implementations which use protocol buffers exist. Although Java, C++, and Python are the languages that are officially supported, people have created open source  implementations for other languages, including JavaScript\footnote{\url{https://github.com/dcodeIO/ProtoBuf.js}}.

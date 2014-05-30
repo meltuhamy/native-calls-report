@@ -3,6 +3,13 @@
 
 RPC is used to uniformly call a procedure that is on a different machine, or on the same machine but on different processes. RPC is implemented on top of a transmission protocol and should work regardless of the communication method being used. For example, we could use TCP/IP for network communications, or any Inter-Process Communication (IPC) method if the caller and callee are on the same machine but in different processes. Normally, RPC implementations would consist of the following steps, as shown in Figure \ref{fig:rpc-components}.
 
+\begin{figure}
+    \centering
+    \includegraphics[bb=0 0 2250 788, width=\textwidth]{RPCDiagram_ImplementingRPC_ADBirrell_BJNelson.png} 
+    \caption{The basic components of an RPC framework, adapted from \cite{birrell1984implementing}}
+    \label{fig:rpc-components}
+\end{figure}
+
 \begin{enumerate}
   \item The caller code is written normally, and so is the server code, but the stubs are/can be automatically generated using interface definition files.
   \item When the remote call is made, it calls the user stub \textbf{(a)} which packs the parameters and function call information into a packet.
@@ -12,12 +19,6 @@ RPC is used to uniformly call a procedure that is on a different machine, or on 
   \item When the procedure returns, the result is passed back to the server stub \textbf{(e)} where it is packed and transmitted back to the caller \textbf{(f)}, which unpacks it and uses the result \textbf{(g)}.
 \end{enumerate}
 
-\begin{figure}
-    \centering
-    \includegraphics[bb=0 0 2250 788, width=\textwidth]{RPCDiagram_ImplementingRPC_ADBirrell_BJNelson.png} 
-    \caption{The basic components of an RPC framework, adapted from \cite{birrell1984implementing}}
-    \label{fig:rpc-components}
-\end{figure}
 
 \subsection{The Role of the RPC Runtime} % (fold)
 \label{sub:rpcruntime_background}

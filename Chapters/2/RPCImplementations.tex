@@ -1,3 +1,4 @@
+\pagebreak
 \section{RPC Implementations} % (fold)
 \label{sec:rpc_implementations}
 
@@ -19,7 +20,7 @@ Remote procedures in ONC RPC are identified by a program number, a version numbe
 In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{sub:oncrpc_intro}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
 
 \lstset{language=c,caption={An example RPC definition for a key-pair generator function},label=samplerpc}
-\begin{lstlisting}
+\begin{code}
 /* File: keypairgen.x */
 struct key_pair_t
 {
@@ -35,7 +36,7 @@ program KEYPAIRGEN_PROGRAM
     key_pair_t generate_keypair (string) = 1;
   } = 0;
 } = 80000;
-\end{lstlisting}
+\end{code}
 
 We can use the RPCGen compiler to then create client and server stubs. Passing the definition file \verb+keypairgen.x+ (shown in listing \ref{samplerpc}) into \lstinline+rpcgen+ will produce the following files:
 
@@ -50,7 +51,7 @@ Now we need to write the actual implementation of the RPC procedure we wish to c
 
 
 \lstset{language=c,caption={An example server-side implementation of the procedure defined in \ref{samplerpc}},label=samplerpcImp}
-\begin{lstlisting}
+\begin{code}
 #include "keypairgen.h"
 
 key_pair_t *
@@ -60,7 +61,7 @@ generate_keypair_0_svc(char **argp, struct svc_req *rqstp)
   // TODO: Actual implementation
   return(&result);
 }
-\end{lstlisting}
+\end{code}
 
 Finally, we call the remote procedure from the client, which includes the same header file and simply calls \lstinline+generate_keypair_0+, passing in the string parameter.
 
@@ -101,7 +102,7 @@ XML-RPC is a simple RPC protocol which uses XML (Extended Mark-up Language) to d
 For example, we could represent the RPC function call we defined before (Listing \ref{samplerpc}) as the XML-RPC function call shown in Listing \ref{examplexmlcall}.
 
 \lstset{language=xml,caption={An example XML-RPC call},label=examplexmlcall}
-\begin{lstlisting}
+\begin{code}
 <methodCall>
   <methodName>
     generate_keypair
@@ -110,12 +111,12 @@ For example, we could represent the RPC function call we defined before (Listing
     <param><value><string> myPassPhraseHere </string></value></param>
   </params>
 </methodCall>
-\end{lstlisting}
+\end{code}
 
 The XML-RPC implementation could give a better interface for the XML calls. For example, run-time reflection APIs could be used to dynamically translate procedure calls into XML-RPC requests. The response from the server would also be in XML form. For example, the response for the request shown in Listing \ref{examplexmlcall} would be as shown in Listing \ref{examplexmlresponse}.
 
 \lstset{language=xml,caption={An example XML-RPC response},label=examplexmlresponse}
-\begin{lstlisting}
+\begin{code}
 <methodResponse>
   <params>
     <param>
@@ -134,7 +135,7 @@ The XML-RPC implementation could give a better interface for the XML calls. For 
     </param>
   </params>
 </methodResponse>
-\end{lstlisting}
+\end{code}
 
 XML-RPC supports simple types like integer, double, string, boolean values. It also supports some complex types like arrays, and associative arrays (\lstinline{struct}). An example of this is in Listing \ref{examplexmlresponse}, where our structure has two keys with their respective values. Binary data can be Base64\footnote{Base64 is an encoding scheme that represents binary data as an ASCII string} encoded and sent in a \lstinline{<base64 />} tag. Because of the fixed language, XML-RPC is naturally cross-language compatible, as it is up to the two ends (client and server) to implement and use their own XML parsers and converters. Several libraries in different languages exist that do this.
 
@@ -142,7 +143,7 @@ XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a si
 \\
 
 \lstset{language=c,caption={An example JSON-RPC request and response},label=examplejsonrpc}
-\begin{lstlisting}
+\begin{code}
 // JSON-RPC request:
 { 
   "jsonrpc": "2.0", 
@@ -162,7 +163,7 @@ XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a si
   "id": 1
 }
 
-\end{lstlisting}
+\end{code}
 
 Both XML-RPC and JSON-RPC have well-defined protocols \cite{jsonrpcspec}\cite{xmlrpcspec}, and are implemented in many different languages.
 % subsection json_xml_rpc_intro (end)
@@ -174,7 +175,7 @@ WebIDL is a specification \cite{webidlw3c} for an interface definition language 
 The WebIDL syntax is similar to ONC RPC's XDR syntax (see section \ref{sec:xdrsyntax}). Listing \ref{webIDLExample} shows the same interface as Listing \ref{samplerpc}, but this time using WebIDL.
 
 \lstset{language=c,caption={An example interface definition written in WebIDL},label=webIDLExample}
-\begin{lstlisting}
+\begin{code}
 dictionary keypair {
   DOMString public_key;
   DOMString private_key;
@@ -183,7 +184,7 @@ dictionary keypair {
 interface KEYPAIRGEN {
   keypair generate_keypair(DOMString passphrase);
 };
-\end{lstlisting}
+\end{code}
 
 Just like in ONC RPC, the WebIDL files can be parsed and used to generate stub methods for the client and server. Because they are language independent, the client and server files that are generated could be in different languages. 
 
