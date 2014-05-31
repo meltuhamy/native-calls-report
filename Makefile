@@ -1,5 +1,5 @@
 LATEXWATCHER := ./node_modules/.bin/latex-watcher
-COMMANDS := latex,bibtex,latex,pdflatex
+COMMANDS := pdflatex,bibtex,pdflatex,pdflatex
 
 all: once
 
