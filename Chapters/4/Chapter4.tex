@@ -2,4 +2,19 @@
 \label{Chapter4}
 \lhead{Chapter 4. \emph{Design}} 
 
-TODO
+This section gives an overview of the design of our RPC framework and generator. The main design decisions were regarding three different issues. These are
+
+\begin{itemize}
+	\item The overall RPC framework structure. This refers to how the RPC framework is split up into different layers, and the design issues of each layer.
+	\item WebIDL bindings, and the issues involved with implementing reasonable bindings for JavaScript and C++.
+	\item Generating RPC code using WebIDL.
+\end{itemize}
+
+\input{Chapters/4/RPCStructure}
+\pagebreak
+
+\input{Chapters/4/WebIDLBindings}
+\pagebreak
+
+\input{Chapters/4/GeneratingRPCCode}
+\pagebreak

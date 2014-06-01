@@ -4,12 +4,24 @@
 
 \section{Native Client Acceleration Modules} % (fold)
 \label{sec:naclam}
-TODO.
+
+TODO: NaClAM. Mention:
+\begin{itemize}
+	\item Idea, example
+	\item Design, implementation
+	\item Advantages, disadvantages
+\end{itemize}
+
 % section naclam (end)
 
 \section{Node.js C++ Bindings} % (fold)
 \label{sec:node_js_c_bindings}
-TODO.
+TODO: node.js C++ bindings. Mention:
+\begin{itemize}
+	\item Idea, example
+	\item Typical implementation example
+	\item Advantages, disadvantages
+\end{itemize}
 % section node_js_c_bindings (end)
 
 
@@ -20,14 +32,31 @@ Apache Thrift is a framework that allows cross-language services development. Or
 
 An unofficial port for Apache Thrift has been made for Native Client \footnote{\url{https://github.com/ahilss/thrift-nacl}}, however, all of the communication code is still hand coded. The performance of using Thrift for Native Client is unclear, as there is no protocol implemented using PPAPI.
 
+TODO: Better structure this section. Mention:
+\begin{itemize}
+	\item Idea, example.
+	\item Typical implementation example, use cases.
+	\item Advantages, disadvantages
+\end{itemize}
+
 % section apache_thrift_cross_language_services (end)
 
-\section{pmrpc: Inter-window JavaScript RPC using postMessage} % (fold)
-\label{sec:pmrpc_json_rpc_using_postmessage}
-pmrpc is an open source library available on GitHub \footnote{\url{https://github.com/izuzak/pmrpc}} which aims to simplify cross-window communication by using postMessage. It shows the simplicity of remote procedure calls using JSON-RPC but only supports browser-based JavaScript. Native Client C++ or any other language or transport is not supported.
-% section pmrpc_json_rpc_using_postmessage (end)
 
-\section{Other JSON-RPC Implementations} % (fold)
+\section{JSON-RPC Implementations} % (fold)
+
+TODO: Better structure this section. Include:
+\begin{itemize}
+	\item What they are, general design of these frameworks.
+	\item Example: pmrpc (+advantages, disadvantages)
+	\item General: Advantages, disadvantages
+\end{itemize}
+
 \label{sec:json_rpc_implementations}
 Many JSON-RPC implementations for several languages exist\footnote{\url{http://en.wikipedia.org/wiki/JSON-RPC}}, including C++\footnote{\url{http://jsonrpc-cpp.sourceforge.net/}} and JavaScript\footnote{\url{https://github.com/gimmi/jsonrpcjs}}. However, none have been implemented for Native Client and using the PPAPI API.
+
+\subsection{pmrpc: Inter-window JavaScript RPC using postMessage} % (fold)
+\label{sub:pmrpc_json_rpc_using_postmessage}
+pmrpc is an open source library available on GitHub \footnote{\url{https://github.com/izuzak/pmrpc}} which aims to simplify cross-window communication by using postMessage. It shows the simplicity of remote procedure calls using JSON-RPC but only supports browser-based JavaScript. Native Client C++ or any other language or transport is not supported.
+% subsection pmrpc_json_rpc_using_postmessage (end)
+
 % section json_rpc_implementations (end)

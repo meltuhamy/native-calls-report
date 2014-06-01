@@ -30,7 +30,7 @@
 \graphicspath{{Pictures/}} % Specifies the directory where pictures are stored
 
 \usepackage[square, numbers, comma, sort&compress]{natbib} % Use the natbib reference package - read up on this to edit the reference style; if you want text (e.g. Smith et al., 2012) for the in-text references (instead of numbers), remove 'numbers' 
-
+\usepackage[final]{pdfpages}
 \usepackage{listings}
 
 \lstnewenvironment{code}[1][]%
@@ -279,12 +279,12 @@ Mohamed Eltuhamy % Author name - remove the \href bracket to remove the link
 
 \addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
 
-%\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
 
 % Include the appendices of the thesis as separate files from the Appendices folder
 % Uncomment the lines as you write the Appendices
 
-%\input{Appendices/AppendixA}
+\input{Appendices/AppendixA}
 %\input{Appendices/AppendixB}
 %\input{Appendices/AppendixC}
 

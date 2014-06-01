@@ -2,4 +2,25 @@
 \label{Chapter6}
 \lhead{Chapter 6. \emph{Evaluation}} 
 
-TODO
+The project has a qualitative evaluation as well as a quantitative evaluation.
+
+The qualitative part is to do with how ``developer friendly'' the system is, as a whole. To measure it, we look at the code written by the developer, as well as the learning curve required to write a complete library from JavaScript to C++.
+
+The quantitative part is to do with the performance characteristics of the RPC library. To measure it, we measure the average time it takes to do a native computation, the time spent in the RPC library code, and the time spent in the JavaScript library code. Therefore, we can calculate roughly how much of an overhead using the library will impact on the performance.
+
+To study these two characteristics in a real world scenario, we will use two applications:
+
+\begin{itemize}
+	\item \emph{Bullet Physics}: A rigid-body physics simulation using the bullet physics\footnote{\url{http://bulletphysics.org/}} library
+	\item \emph{Oniguruma}: A regular expression engine written in C++ using the Oniguruma\footnote{\url{http://www.geocities.jp/kosako3/oniguruma/}} library.
+\end{itemize}
+
+We also measure the general performance of the framework by the use of micro benchmarks.
+
+The section gives the results as well as implementation details of both the qualitative and quantitative evaluation of the project. In the end, we analyse the overall performance and usability of the RPC framework, and compare it to other currently available methods.
+
+\input{Chapters/6/Performance}
+\pagebreak
+
+\input{Chapters/6/Usability}
+\pagebreak
