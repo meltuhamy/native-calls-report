@@ -295,18 +295,18 @@
   \null\vfil
   \begin{center}
     \setlength{\parskip}{0pt}
-    {\normalsize \UNIVNAME \par} % University name in capitals
-    \bigskip
+    %{\normalsize \UNIVNAME \par} % University name in capitals
+    %\bigskip
     {\huge{\textit{Abstract}} \par}
-    \bigskip
+    %\bigskip
     %{\normalsize \facname \par} % Faculty name
-    {\normalsize \deptname \par} % Department name
-    \bigskip
-    {\normalsize \degreename\par} % Degree name
-    \bigskip
-    {\normalsize\bf \@title \par} % Thesis title
-    \medskip
-    {\normalsize by \authornames \par} % Author name
+    %{\normalsize \deptname \par} % Department name
+    %\bigskip
+    %{\normalsize \degreename\par} % Degree name
+    %\bigskip
+    %{\normalsize\bf \@title \par} % Thesis title
+    %\medskip
+    %{\normalsize by \authornames \par} % Author name
     \bigskip
   \end{center}
 }
@@ -357,57 +357,57 @@
     \cleardoublepage
 }\end{spacing}
 }
-\renewcommand\listoftables{
-\btypeout{List of Tables}
+%\renewcommand\listoftables{
+%\btypeout{List of Tables}
 %\addtotoc{List of Tables}
-\begin{spacing}{1}{
-    \setlength{\parskip}{1pt}
-    \if@twocolumn
-      \@restonecoltrue\onecolumn
-    \else
-      \@restonecolfalse
-    \fi
-    \chapter*{\listtablename
-      \@mkboth{
-          \MakeUppercase\listtablename}{\MakeUppercase\listtablename}}
-    \@starttoc{lot}
-    \if@restonecol\twocolumn\fi
-    \cleardoublepage
-}\end{spacing}
-}
-\newcommand\listsymbolname{Abbreviations}
-\usepackage{longtable}
-\newcommand\listofsymbols[2]{
-\btypeout{\listsymbolname}
-\addtotoc{\listsymbolname}
-    \chapter*{\listsymbolname
-      \@mkboth{
-          \MakeUppercase\listsymbolname}{\MakeUppercase\listsymbolname}}
-\begin{longtable}[c]{#1}#2\end{longtable}\par
-    \cleardoublepage
-}
-\newcommand\listconstants{Physical Constants}
-\usepackage{longtable}
-\newcommand\listofconstants[2]{
-\btypeout{\listconstants}
-\addtotoc{\listconstants}
-    \chapter*{\listconstants
-      \@mkboth{
-          \MakeUppercase\listconstants}{\MakeUppercase\listconstants}}
-\begin{longtable}[c]{#1}#2\end{longtable}\par
-    \cleardoublepage
-}
-\newcommand\listnomenclature{Symbols}
-\usepackage{longtable}
-\newcommand\listofnomenclature[2]{
-\btypeout{\listnomenclature}
-\addtotoc{\listnomenclature}
-    \chapter*{\listnomenclature
-      \@mkboth{
-          \MakeUppercase\listnomenclature}{\MakeUppercase\listnomenclature}}
-\begin{longtable}[c]{#1}#2\end{longtable}\par
-    \cleardoublepage
-}
+%\begin{spacing}{1}{
+%    \setlength{\parskip}{1pt}
+%    \if@twocolumn
+%      \@restonecoltrue\onecolumn
+%    \else
+%      \@restonecolfalse
+%    \fi
+%    \chapter*{\listtablename
+%      \@mkboth{
+%          \MakeUppercase\listtablename}{\MakeUppercase\listtablename}}
+%    \@starttoc{lot}
+%    \if@restonecol\twocolumn\fi
+%    \cleardoublepage
+%}\end{spacing}
+%}
+%\newcommand\listsymbolname{Abbreviations}
+%\usepackage{longtable}
+%\newcommand\listofsymbols[2]{
+%\btypeout{\listsymbolname}
+%\addtotoc{\listsymbolname}
+%    \chapter*{\listsymbolname
+%      \@mkboth{
+%          \MakeUppercase\listsymbolname}{\MakeUppercase\listsymbolname}}
+%\begin{longtable}[c]{#1}#2\end{longtable}\par
+%    \cleardoublepage
+%}
+%\newcommand\listconstants{Physical Constants}
+%\usepackage{longtable}
+%\newcommand\listofconstants[2]{
+%\btypeout{\listconstants}
+%\addtotoc{\listconstants}
+%    \chapter*{\listconstants
+%      \@mkboth{
+%          \MakeUppercase\listconstants}{\MakeUppercase\listconstants}}
+%\begin{longtable}[c]{#1}#2\end{longtable}\par
+%    \cleardoublepage
+%}
+%\newcommand\listnomenclature{Symbols}
+%\usepackage{longtable}
+%\newcommand\listofnomenclature[2]{
+%\btypeout{\listnomenclature}
+%\addtotoc{\listnomenclature}
+%    \chapter*{\listnomenclature
+%      \@mkboth{
+%          \MakeUppercase\listnomenclature}{\MakeUppercase\listnomenclature}}
+%\begin{longtable}[c]{#1}#2\end{longtable}\par
+%    \cleardoublepage
+%}
 \newcommand\acknowledgements[1]{
 \btypeout{Acknowledgements}
 \addtotoc{Acknowledgements}
@@ -417,15 +417,15 @@
 \vfil\vfil\null
 
 }
-\newcommand\dedicatory[1]{
-\btypeout{Dedicatory}
-\thispagestyle{plain}
-\null\vfil
-\vskip 60\p@
-\begin{center}{\Large \sl #1}\end{center}
-\vfil\null
-\cleardoublepage
-}
+%\newcommand\dedicatory[1]{
+%\btypeout{Dedicatory}
+%\thispagestyle{plain}
+%\null\vfil
+%\vskip 60\p@
+%\begin{center}{\Large \sl #1}\end{center}
+%\vfil\null
+%\cleardoublepage
+%}
 \renewcommand\backmatter{
   \if@openright
     \cleardoublepage

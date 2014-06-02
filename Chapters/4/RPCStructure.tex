@@ -8,4 +8,98 @@ TODO. Mention:
 	\item Layer by layer, what each layer does and how it can be replaced with other layers.
 \end{itemize}
 
+The structure of the RPC framework is based around the notion of layers. 
+Each layer solves a particular task, in order to achieve the goal of getting from a JavaScript stub to a C++ function, and back. Listing \ref{structurediagram} shows the overall structure and interactions of each layer.
+
+\lstset{language=c,caption={A layered approach to RPC},label=structurediagram}
+\begin{code}
++-------------------------------------------------------------------+
+|                           NaClRPCModule                           |
+|-------------------------------------------------------------------|
+|                                                                   |
+|                                                                   |
+|     +-------------------------------------------------------+     |
+|     |+-----------------------------------------------------+|     |
+|     || +--------------------+ Stub +----------------------+|| 1   |
+|     |+-----------------------------------------------------+|     |
+|     +-------------------------------------------------------+     |
+|                 +                      ^            ^             |
+|                 |                      |            |             |
+|                 |callRPC               |successCB   |errorCB      |
+|                 |                      |            |             |
+|                 v                      +            +             |
+|     +-------------------------------------------------------+     |
+|     |                        Runtime                        | 2   |
+|     +-------------------------------------------------------+     |
+|      +          +        +                ^           ^           |
+|      |          |        |                |handle     |           |
+|      |send      |send    |send            |Callback   |handle     |
+|      |Callback  |Error   |Request         |/handleCall|Error      |
+|      v          v        v                +           +           |
+|     +-------------------------------------------------------+     |
+|     |                        JSONRPC                        | 3   |
+|     +-------------------------------------------------------+     |
+|      +         +         +                ^                       |
+|      |         |         |                |                       |
+|      |sendRPC  |sendRPC  |sendRPC         |handleRPCCallback      |
+|      |Callback |Error    |Request         |/ handleRPCCall        |
+|      v         v         v                +                       |
+|     +-------------------------------------------------------+     |
+|     |                       Transport                       | 4   |
+|     +-------------------------------------------------------+     |
+|         +        +       +                ^                       |
+|         |        |       |                |                       |
+|         |        |       |                |                       |
+|         |on      |load   |postMessage     |handleMessage          |
+|         |        |       |                |                       |
+|         v        v       v                +                       |
+|     +-------------------------------------------------------+     |
+|     |+-----------------------------------------------------+|     |
+|     ||+-------------------+ NaClModule +------------------+|| 5   |
+|     |+-----------------------------------------------------+|     |
+|     +-------------------------------------------------------+     |
+|                                                                   |
++-------------------------------------------------------------------+
+\end{code}
+
+The advantages of this approach is that each layer is independent of the other. For example, if we choose a different RPC schema (i.e. something other than JSON RPC), we could easily replace the JSON RPC layer. Or, if we choose to have the C++ function on the server instead of as a Native Client module, we can easily change the transport layer to use AJAX requests or Web Sockets. 
+
+
+The other advantage to this approach is that because the layers are independent and each layer has a simple interface, each layer can easily be tested. For example, to test the implementation of the run time layer, we can easily mock the JSON RPC layer, since we know its public interface.
+
+In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. Each layer is described in detail below.
+
+\subsection{Transport layer} % (fold)
+\label{sub:transport_layer_design}
+TODO. Mention:
+\begin{itemize}
+	\item 
+\end{itemize}
+% subsection transport_layer_design (end)
+
+\subsection{JSON RPC layer} % (fold)
+\label{sub:json_rpc_layer_design}
+TODO. Mention:
+\begin{itemize}
+	\item 
+\end{itemize}
+% subsection json_rpc_layer_design (end)
+
+\subsection{RPC Runtime layer} % (fold)
+\label{sub:rpc_runtime_layer_design}
+TODO. Mention:
+\begin{itemize}
+	\item 
+\end{itemize}
+% subsection rpc_runtime_layer_design (end)
+
+\subsection{Stub Layer} % (fold)
+\label{sub:stub_layer_design}
+TODO. Mention:
+\begin{itemize}
+	\item 
+\end{itemize}
+
+% subsection stub_layer_design (end)
+
 % section rpc_framework_structure (end)
