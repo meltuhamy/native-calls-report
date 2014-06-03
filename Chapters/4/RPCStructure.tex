@@ -71,35 +71,60 @@ In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer a
 
 \subsection{Transport layer} % (fold)
 \label{sub:transport_layer_design}
-TODO. Mention:
+The role of the transport layer is to implement the transportation of messages. Messages could be anything, JavaScript objects, strings, or even binary data. Moreover, the receiver could be anything - a node.js server, or a Native Client module. Finally, the transport could use any transport mechanism - web sockets, HTTP/AJAX, WebRTC, postMessage, etc.
+
+The important thing is that the transport must provide:
 \begin{itemize}
-	\item 
+	\item An asynchronous API (should be non-blocking)
+	\item The following public API:
+	\begin{itemize}
+		\item a \lstinline+send+ function, that accepts a payload of any type.
+		\item a constructor which sets a message handler.
+		\item the message handler must be invoked when a message is received. 
+	\end{itemize}
 \end{itemize}
+
+The reason this approach was taken was to allow any possibility of executing remote procedure calls. It also allows the transport layer to be testable, since no concrete implementations of the layers above or below the transport layer need to be provided to test the functionality of the transport layer.
 % subsection transport_layer_design (end)
 
-\subsection{JSON RPC layer} % (fold)
+\subsection{RPC layer} % (fold)
 \label{sub:json_rpc_layer_design}
-TODO. Mention:
+The RPC Layer is responsible for validating messages sent and received by the transport. 
+
+Messages \emph{received} by the transport could either be RPC \emph{requests}, \emph{responses}, or \emph{errors}. If a message is one of these three, it should forward the message to the layer above (the \emph{runtime}). If a message is not one of these three possibilities, the message should be ignored as it is not a RPC message.
+
+The RPC layer can also provide RPC \emph{send} functions, that allow messages to be sent to the layer below. It allows RPC requests, responses and errors to be sent.
+
+Therefore, the RPC layer must have the following API:
 \begin{itemize}
-	\item 
+	\item a \lstinline+handleMessage+ function, which accepts a payload and is called by the Transport layer when a message is received. \lstinline+handleMessage+ should filter through the messages received to categorise them as requests, responses or errors. Depending on which type of message it is, the layer can call different methods of the layer above.
+	\item a \lstinline+sendRequest+ function, which validates messages to be sent as requests, and forwards it down to the transport layer to be sent.
+	\item a \lstinline+sendResponse+ function, which validates messages to be sent as responses, and forwards it down to the transport layer to be sent.
+	\item a \lstinline+sendError+ function, which validates messages to be sent as errors, and forwards it down to the transport layer to be sent.
 \end{itemize}
+
+
 % subsection json_rpc_layer_design (end)
 
 \subsection{RPC Runtime layer} % (fold)
 \label{sub:rpc_runtime_layer_design}
-TODO. Mention:
+The main job of the runtime layer is to coordinate RPC requests and responses. As described in the background section \ref{sub:rpcruntime_background} (page \pageref{sub:rpcruntime_background}), the runtime does this by keeping track of RPC requests, and matching the requests with the responses by the use of a call identifier.
+
+The API the runtime provides is therefore as follows:
 \begin{itemize}
-	\item 
+	\item send functions, that call the layer below.
+	\begin{itemize}
+		\item \lstinline+sendRequest = function(method, parameters, successCB, errorCB)+ this will give the request an ID, then keep track of that ID and the callback functions.
+		\item \lstinline+sendResponse = function(id, result)+ this will just construct a response message and send it to the layer below.
+		\item \lstinline+sendError = function(id, errorCode, errorMessage, errorData)+ will construct an error message and send it to the layer below.
+	\end{itemize}
+	\item handler functions (\lstinline+handleRequest+, \lstinline+handleResponse+, \lstinline+handleError+). The runtime will match the response's identifier with a previously sent request identifier. If a callback was provided, the callback will be called.
 \end{itemize}
 % subsection rpc_runtime_layer_design (end)
 
 \subsection{Stub Layer} % (fold)
 \label{sub:stub_layer_design}
-TODO. Mention:
-\begin{itemize}
-	\item 
-\end{itemize}
-
+Finally, the stub layer is just a wrapper over the runtime layer's API, so that functions can be called `natively' from within the language. The stub layer also performs parameter type checking and marshalling.
 % subsection stub_layer_design (end)
 
 % section rpc_framework_structure (end)
