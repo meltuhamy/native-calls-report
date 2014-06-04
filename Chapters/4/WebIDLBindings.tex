@@ -89,7 +89,7 @@ However, other approaches are possible. One alternative is we could have simply 
 	\item The use of \lstinline{pp::VarDictionary} is actually an implementation detail of the RPC library. In other words, we simply use this as a way of transporting the data from JavaScript to C++. Perhaps someone could write another implementation that uses full binary transfer for example, using Protocol Buffers (see background section \ref{sec:data_representation_and_transfer}, page \pageref{sec:data_representation_and_transfer}). In that case, passing the \lstinline{pp::VarDictionary} to the developer would actually be more burden on the library, and probably impact performance.
 \end{itemize}
 
-In the end, we take the approach of individually, recursively demarshalling the \lstinline{pp::VarDictionary} into a struct type, as a trade off of simplicity and developer friendliness to performance.
+In the end, we take the approach of individually, recursively de-marshalling the \lstinline{pp::VarDictionary} into a struct type, as a trade off of simplicity and developer friendliness to performance.
 % subsection dictionary_types (end)
 
 \subsection{Sequence Types} % (fold)
