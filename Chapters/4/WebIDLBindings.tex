@@ -53,7 +53,9 @@ double               &                  &                  & double
 \end{tabular}
 \end{table}
 
-One interesting issue to note is that the bindings for large number types, such as \lstinline{long long}, are represented in JavaScript by the \emph{closest} numeric value. But because all JavaScript numbers are represented by 64 bit IEEE 754 (`double') types, the largest number that can be represented in JavaScript is actually $2^{53}-1$. This means that often the conversion between the WebIDL type and the JavaScript binding is \emph{lossy}, in the sense that it is not a one-to-one mapping. Although it would have been possible to overcome this issue by creating or using JavaScript `BigNumber' types, I decided to adhere to the specification, using the lossy conversion. This was for a couple of reasons:
+It can be observed that the integer types are represented in C++ with the size information in it, even though C++ has equivalent type names for each of the WebIDL integer types. For example, C++ supports the \lstinline{short} type, but we explicitly decide to represent \lstinline{short} as \lstinline{int16_t}. The reason why explicit size information is included in the type is because of different implementations of certain types. For example, depending on the C++ standard library implementation we use, a \lstinline{long} can be represented in 32 bits or 64 bits. But because WebIDL explicitly defines the actual size of the integer types, to stick to the standard, we can't tolerate this variation. For this reason, we use the explicit size types as shown above. This issue does not arise for \lstinline{float} and \lstinline{double} types as both C++ and JavaScript adhere to the IEEE 754 format.
+
+Another interesting issue to note is that the bindings for large number types, such as \lstinline{long long}, are represented in JavaScript by the \emph{closest} numeric value. But because all JavaScript numbers are represented by 64 bit IEEE 754 (`double') types, the largest number that can be represented in JavaScript is actually $2^{53}-1$. This means that often the conversion between the WebIDL type and the JavaScript binding is \emph{lossy}, in the sense that it is not a one-to-one mapping. Although it would have been possible to overcome this issue by creating or using JavaScript `BigNumber' classes, I decided to adhere to the specification, using the lossy conversion. This was for a couple of reasons:
 
 \begin{itemize}
 	\item Forcing the JavaScript user to use a number library is bad, as it adds more dependencies and is not conventional JavaScript e.g. the BigNumber library will have a different API to normal JavaScript numbers, and certain operations, such as addition, will not work properly.
@@ -61,11 +63,33 @@ One interesting issue to note is that the bindings for large number types, such 
 	\item It is fairly unlikely that the developer would want to send back such large numbers to the JavaScript, and since the developer is developing for the web platform, they should be aware of JavaScript's limitations - including numeric type support.
 \end{itemize}
 
+To represent string types, the \lstinline{DOMString} WebIDL type is converted to the JavaScript \lstinline{string} type, as defined in the standard. As for the C++ binding, the \lstinline{std::string} class was chosen to represent DOMString. The alternative was to represent strings as character array buffers (\lstinline{char[]}). I decided to use the \lstinline{std::string} class for the following reasons:
+
+\begin{itemize}
+	\item JavaScript uses unicode (utf8) for strings. The developer would need to do some encoding/decoding to handle unicode characters, which might not fit in a byte.
+	\item Simplicity: The PPAPI supports an \lstinline{AsString()} method on \lstinline{pp::Var} objects, which extracts the string value as a \lstinline{std::string} object.
+	\item C++ developers use \lstinline{std::string} when they can. \lstinline{std::string} allows conversion to C strings using the \lstinline{c_str()} method.
+\end{itemize}
+
 % subsection number_types (end)
 
 \subsection{Dictionary Types} % (fold)
 \label{sub:dictionary_types}
+The WebIDL standard defines the binding of a WebIDL dictionary to be a JavaScript Object with the keys being the identifier names of each dictionary member, and values being of the member's type. For example, (TODO: Give example).
 
+When a JavaScript object (and therefore a WebIDL dictionary) is sent to the NaCl module, it is represented in PPAPI as a \lstinline{pp::VarDictionary} object. \lstinline{pp::VarDictionary} allows extracting keys and values as \lstinline{pp::Var}. See background section \ref{sub:using_PPAPI} on page \pageref{sub:using_PPAPI} for more details.
+
+We now consider how we can represent dictionaries in C++. The obvious approach is to represent a dictionary as a C \lstinline{struct}. The fields of the struct will have corresponding names and types as defined in the dictionary (TODO, show example). The advantage of this is that the object passed to the C++ programmer will be a normal C++ struct. However, it will impact performance, since each field of the struct will need to be individually converted. In fact, this makes marshalling dictionaries the slowest conversion, according to the benchmarks (see section \ref{sec:performance_evaluation}, page \pageref{sec:performance_evaluation}).
+
+However, other approaches are possible. One alternative is we could have simply passed the \lstinline{pp::VarDictionary} object to the developer, without modifying it. The advantage of doing this is that it will simplify the C++ RPC library and therefore make it faster to send and receive complicated structures. However, there are a few problems with this approach:
+
+\begin{itemize}
+	\item The C++ developer is now exposed to PPAPI. This adds a learning curve, as it is another library that the C++ developer would have to get used to in order to write their module.
+	\item The C++ developer will need to do all the type marshalling by themselves. This renders the dictionary type definition that they wrote in WebIDL useless, and adds more burden on the developer.
+	\item The use of \lstinline{pp::VarDictionary} is actually an implementation detail of the RPC library. In other words, we simply use this as a way of transporting the data from JavaScript to C++. Perhaps someone could write another implementation that uses full binary transfer for example, using Protocol Buffers (see background section \ref{sec:data_representation_and_transfer}, page \pageref{sec:data_representation_and_transfer}). In that case, passing the \lstinline{pp::VarDictionary} to the developer would actually be more burden on the library, and probably impact performance.
+\end{itemize}
+
+In the end, we take the approach of individually, recursively demarshalling the \lstinline{pp::VarDictionary} into a struct type, as a trade off of simplicity and developer friendliness to performance.
 % subsection dictionary_types (end)
 
 \subsection{Sequence Types} % (fold)
