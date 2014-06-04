@@ -1,10 +1,76 @@
 \section{WebIDL Bindings} % (fold)
 \label{sec:webidl_bindings}
 
-TODO. Mention:
+In order to automatically generate stubs for JavaScript and C++ that allows communication between the two languages, an independent language, WebIDL, is used to define types and interfaces which will be used by both JavaScript and C++.
+
+\begin{code}
+TODO: make this an actual diagram.
+C++   <->   JS
+
+______________
+|    WebIDL   |
+|_____________|
+  |         |
+  v         v
+ C++  <->  JS
+\end{code}
+
+The reason why this is needed is because JavaScript and C++ have entirely different type systems, and because the communication is two-way, we can't simply map a C++ type into a JavaScript type. Moreover, if the RPC framework were to be completely language independent, we would need a mapping between every languages type into a JavaScript type. Therefore, to generalise, WebIDL gives an intermediary type interface so that other languages can communicate with JavaScript. The WebIDL types and syntax is defined as a standard, and gives EcmaScript bindings. In other words, the conversion between WebIDL and JavaScript types is defined in the standard. It is then up to the developer of the other language to define a binding from that language to WebIDL.
+
+In this section, we mention the C++ WebIDL bindings used in the Native Calls project, and the design decisions behind them.
+
+The implementation challenges involved in implementing these bindings are discussed at a later chapter.
+
+\subsection{Modules, Interfaces, and Functions} % (fold)
+\label{sub:modules_and_interfaces}
+In Native Calls, we make a distinction between `modules' and `interfaces'. Essentially, a module contains several interfaces. And an interface contains several function definitions.
+
+When we define a module, we must define all the interfaces, type definitions, and dictionaries for it in the same generator call. The definitions could be in different IDL files.
+
+In JavaScript, a module is represented as an object which has a property for each interface that module defines. Then, each interface has a property for each function that interface defines. 
+
+In C++, a module is represented as a class, which sets up the module. When setting up the module, each function interface is added. An IDL interface is represented by a C++ header file. The header file defines each function that is in the interface.
+
+% subsection modules_and_interfaces (end)
+
+\subsection{Number and String Types} % (fold)
+\label{sub:number_types}
+WebIDL defines a number of numeric types, and also provides the JavaScript bindings for each type. The table below (TODO: give ref) shows the numeric types and their bindings in C++.
+
+\begin{table}[h]
+\begin{tabular}{l|lll}
+\textbf{WebIDL Type} & \textbf{Max int} & \textbf{Min int} & \textbf{C++ Type}  \\ \hline
+byte                 & $-2^{7}$         & $2^{7}-1$        & int8\_t            \\
+octet                & $0$              & $2^{8}-1$        & uint8\_t           \\
+short                & $-2^{15}$        & $2^{15}-1$       & int16\_t           \\
+unsigned short       & $0$              & $2^{16}-1$       & uint16\_t          \\
+long                 & $-2^{31}$        & $2^{31}-1$       & int32\_t           \\
+unsigned long        & $0$              & $2^{32}-1$       & uint32\_t          \\
+long long            & $-2^{63}$        & $2^{63}-1$       & int64\_t           \\
+unsigned long long   & $0$              & $2^{64}-1$       & uint64\_t          \\
+float                &                  &                  & float              \\
+double               &                  &                  & double           
+\end{tabular}
+\end{table}
+
+One interesting issue to note is that the bindings for large number types, such as \lstinline{long long}, are represented in JavaScript by the \emph{closest} numeric value. But because all JavaScript numbers are represented by 64 bit IEEE 754 (`double') types, the largest number that can be represented in JavaScript is actually $2^{53}-1$. This means that often the conversion between the WebIDL type and the JavaScript binding is \emph{lossy}, in the sense that it is not a one-to-one mapping. Although it would have been possible to overcome this issue by creating or using JavaScript `BigNumber' types, I decided to adhere to the specification, using the lossy conversion. This was for a couple of reasons:
+
 \begin{itemize}
-	\item What the bindings are, and possible alternatives.
-	\item Reasons (and perhaps who else uses the bindings). Advantages, disadvantages.
+	\item Forcing the JavaScript user to use a number library is bad, as it adds more dependencies and is not conventional JavaScript e.g. the BigNumber library will have a different API to normal JavaScript numbers, and certain operations, such as addition, will not work properly.
+	\item Using a different implementation, the RPC library could represent all data as \emph{binary}. JavaScript supports binary data in the form of ArrayBuffers.
+	\item It is fairly unlikely that the developer would want to send back such large numbers to the JavaScript, and since the developer is developing for the web platform, they should be aware of JavaScript's limitations - including numeric type support.
 \end{itemize}
+
+% subsection number_types (end)
+
+\subsection{Dictionary Types} % (fold)
+\label{sub:dictionary_types}
+
+% subsection dictionary_types (end)
+
+\subsection{Sequence Types} % (fold)
+\label{sub:sequence_types}
+
+% subsection sequence_types (end)
 
 % section webidl_bindings (end)
