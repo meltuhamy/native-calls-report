@@ -94,6 +94,55 @@ In the end, we take the approach of individually, recursively de-marshalling the
 
 \subsection{Sequence Types} % (fold)
 \label{sub:sequence_types}
+In WebIDL, there are two ways of specifying a collection of types: sequence types (\lstinline{sequence<T>}) and array types (\lstinline{T[]}). The difference, according to the specification, is that a sequence type is \emph{passed by value} - meaning it is copied when passed into a function. Array types are passed by reference. 
+
+Since \lstinline{postMessage} only transfers objects and values by value (i.e. structures are recursively copied), our RPC framework only supports sequence types. However, in JavaScript, they are represented in the same way (i.e. Array objects).
+
+In C++, there are many ways of representing WebIDL sequence types, but we can assume we have two options: using an array structure, or a standard library template class such as \lstinline{std::vector}. We compare each approach below.
+
+The advantage of using an array is that we do not need to use an extra library, and it might be faster for large arrays. The problem of using arrays is that anywhere we use the array, we will need to also pass its length. This can get tedious, if we have a function that accepts many parameters (TODO: give an example).
+
+The advantage of using a vector is that they are dynamic and they encapsulate the length of the vector. This means they are easy to both use and marshal. The disadvantage is that we're forcing the user to use the std::vector library. There are cases where the developer just wants an array.
+
+In the end, I decided to go for the vector approach, for the following reasons:
+
+\begin{itemize}
+	\item The performance is nearly the same, since we allocate the size of the vector before using it. Also, regardless of the approach taken, it will take O(n) time to marshal and demarshal the array, since it needs to be converted to/from a \lstinline{pp::VarArray}.
+	\item If the developer requires an array buffer, they can use the \lstinline{std::vector::data()} method to get a pointer to the vector's internal buffer.
+	\item Vectors are generally how C++ developers represent collections of items, so most of the time it is fine to use the \lstinline{std::vector} library.
+\end{itemize}
+
+\subsubsection{Transferring contiguous number types as binary} % (fold)
+\label{ssub:transferring_binary}
+\emph{\textbf{DRAFT COMMENT:} I haven't implemented this. Should it therefore be in the design section or some other section e.g. a future extensions section?} 
+
+
+So far we have been discussing how to transfer a sequence of any type. This is represented in WebIDL as \lstinline{sequence<T>}, where \lstinline{T} could be any type, including dictionary types. But there is one case where it makes sense to send the data as binary data, through the use of ArrayBuffers. This is when we want to send a contiguous array of numeric type, for example, an array of floats. 
+
+Sending binary data in that case is efficient for two reasons. The first is the fact you don't need to marshal the data into a \lstinline{pp::VarArray} type, since the binary buffer can be sent directly using the \lstinline{pp::VarArrayBuffer} class. The second reason is how binary data is transferred in NaCl. When we send an ArrayBuffer to/from JavaScript, instead of the data being copied, it is shared. Only when the data is written to does the data get copied. This makes transferring ArrayBuffers very efficient - instead of O(n) time, it will probably take O(1) time.
+
+Now, considering the performance gains, if we decide to send and receive contiguous number arrays as ArrayBuffers, a few questions arise. The first is how will the data be represented in JavaScript, and whether or not this representation makes sense in every context. The answer is that in JavaScript, the data will need to be sent and received as an \lstinline{ArrayBuffer}. It's difficult to do anything with an ArrayBuffer though, so in JavaScript, a few more classes were made to help with reading buffers of certain types. These are called ArrayBufferViews. Currently available ArrayBufferViews are \lstinline{Int8Array}, \lstinline{Int16Array}, \lstinline{Int32Array}, \lstinline{Float32Array}, and \lstinline{Float64Array}, and also their unsigned counterparts. These classes allow accessing the data of a buffer as though it was a normal JavaScript array (TODO, show example). So, when we relate these ArrayBufferViews to IDL types, these make sense for byte, short, long, float, and double WebIDL types. The \lstinline{long long} type will be unsupported, but that is understandable, considering JavaScript's number size limitations (as described earlier). In conclusion, the answer to the first question is ``the binary data will be represented in JavaScript as an appropriate ArrayBufferView, and this representation makes sense for most number array types''.
+
+The second question is \emph{when} do we send binary data? To answer the question, we consider when it's possible to send arrays of numbers in general:
+
+\begin{itemize}
+	\item As a parameter
+	\item As a result
+	\item Embedded inside a dictionary or array
+\end{itemize}
+
+We could choose to send and receive binary for \emph{all} the above scenarios, or some. To figure out when to send, we need to run some benchmarks to find how much of a performance improvement it might give.
+
+The third question is how do we accept binary data in C++? The possibilities are either to accept it as a buffer, or a vector. As discussed earlier, however, accepting it as a buffer is problematic since we need to provide the length of the array. Luckily, we can easily and efficiently construct a vector with the same data, by providing a pointer to the data in the constructor of the vector. (TODO: give example). When sending it back, we use the \lstinline{std::vector::data()} method to efficiently get a pointer to the buffer, that we can then use to send.
+
+The fourth and final question we need to ask is how the data is transferred from C++ to JavaScript. The answer is through the \lstinline{pp::VarArrayBuffer} interface. But there arises a problem, to do with copying memory. TODO. Go into details:
+\begin{itemize}
+	\item Show example.
+	\item memcpy is slow.
+	\item possible solution: only transfer binary when we know its size. We know its size from WebIDL.
+\end{itemize}
+
+% subsubsection transferring_binary (end)
 
 % subsection sequence_types (end)
 
