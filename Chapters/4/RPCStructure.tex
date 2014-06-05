@@ -1,18 +1,19 @@
-\section{RPC Framework Structure} % (fold)
+\section{RPC Framework} % (fold)
 \label{sec:rpc_framework_structure}
-
-TODO. Mention:
-\begin{itemize}
-	\item Overall design + layered approach
-	\item Layer interactions and api. Diagram.
-	\item Layer by layer, what each layer does and how it can be replaced with other layers.
-\end{itemize}
 
 The structure of the RPC framework is based around the notion of layers. 
 Each layer solves a particular task, in order to achieve the goal of getting from a JavaScript stub to a C++ function, and back. Listing \ref{structurediagram} shows the overall structure and interactions of each layer.
 
+The advantages of this approach is that each layer is independent of the other. For example, if we choose a different RPC schema (i.e. something other than JSON RPC), we could easily replace the JSON RPC layer. Or, if we choose to have the C++ function on the server instead of as a Native Client module, we can easily change the transport layer to use AJAX requests or Web Sockets. 
+
+
+The other advantage to this approach is that because the layers are independent and each layer has a simple interface, each layer can easily be tested. For example, to test the implementation of the run time layer, we can easily mock the JSON RPC layer, since we know its public interface.
+
+In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. Each layer is described in detail below.
+
 \lstset{language=c,caption={A layered approach to RPC},label=structurediagram}
 \begin{code}
+TODO: Turn it into a real diagram.
 +-------------------------------------------------------------------+
 |                           NaClRPCModule                           |
 |-------------------------------------------------------------------|
@@ -62,12 +63,6 @@ Each layer solves a particular task, in order to achieve the goal of getting fro
 +-------------------------------------------------------------------+
 \end{code}
 
-The advantages of this approach is that each layer is independent of the other. For example, if we choose a different RPC schema (i.e. something other than JSON RPC), we could easily replace the JSON RPC layer. Or, if we choose to have the C++ function on the server instead of as a Native Client module, we can easily change the transport layer to use AJAX requests or Web Sockets. 
-
-
-The other advantage to this approach is that because the layers are independent and each layer has a simple interface, each layer can easily be tested. For example, to test the implementation of the run time layer, we can easily mock the JSON RPC layer, since we know its public interface.
-
-In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. Each layer is described in detail below.
 
 \subsection{Transport layer} % (fold)
 \label{sub:transport_layer_design}
@@ -85,6 +80,58 @@ The important thing is that the transport must provide:
 \end{itemize}
 
 The reason this approach was taken was to allow any possibility of executing remote procedure calls. It also allows the transport layer to be testable, since no concrete implementations of the layers above or below the transport layer need to be provided to test the functionality of the transport layer.
+
+
+\subsubsection{Implementing the Transport Layer in JavaScript} % (fold)
+\label{ssub:implementing_the_transport_layer_in_javascript}
+To implement the transport layer using a Native Client module, we first encapsulate the details of a Native Client module into its own class, called \lstinline{NaClModule}. This class essentially does all the DOM manipulation for a module. To explain this, consider how a Native Client module is normally embedded in the page (as described in the background section \ref{sub:nacl_modules_ppapi} on page \pageref{sub:nacl_modules_ppapi}). The module is embedded onto the page using an \lstinline{embed} tag. The \lstinline{src} attribute points to the location of the NaCl Manifest - which tells the browser which (p)nacl executable to load. For example, \lstinline{<embed src="myModule.nmf" type="application/x-nacl" />}. The \lstinline{type} attribute tells the browser what MIME type the executable is. This could take values of either \lstinline{x-nacl} for NaCl modules or \lstinline{x-pnacl} for PNaCl modules. 
+
+All this detail is configured through the NaClModule constructor, which takes in an object for configuration. In other words, the same \lstinline{embed} tag is created (but not actually placed on the page \emph{yet}), using the following code:
+
+\begin{code}
+var myModule = new NaClModule({
+  src: 'rpc-module.nmf', 
+  name: 'rpc', 
+  id: testModuleId, 
+  type: 'application/x-pnacl'
+});
+\end{code}
+
+However, much of the details of this can be `inferred' using the name of the module:
+
+\begin{code}
+var myModule = new NaClModule({"name": testModuleId});
+// creates an embed tag with the same attributes
+\end{code}
+
+The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. TODO: Examples of attribute inference using config.
+
+Once a NaClModule is constructed, it can be loaded using the \lstinline{load} method, which can take in an optional callback function as a parameter. The load method essentially inserts the \lstinline{embed} element into the page. Event handlers can be registered with the module by using the \lstinline{on} method. For example:
+
+\begin{code}
+var myModule = new NaClModule({"name": testModuleId});
+myModule.on('load', function(){...});
+myModule.on('message', function(){...});
+myModule.on('crash', function(){...});
+...
+\end{code}
+
+TODO: Class diagram showing NaClModule and Transport.
+
+The NaClModule class therefore makes it easy to create and alter the HTML embed tag using only JavaScript. 
+
+Now, the transport layer encapsulate a NaClModule object, which is used as a low-level communication object in order to send and receive messages. 
+% subsubsection implementing_the_transport_layer_in_javascript (end)
+
+\subsubsection{Implementing the Transport Layer in C++} % (fold)
+\label{ssub:implementing_the_transport_layer_in_cpp_}
+Since the C++ module is a singleton, the structure of the transport in C++ is a lot simpler. Essentially, the transport is a class that extends the \lstinline{pp::Instance} class provided by the PPAPI, which we use to send and receive messages using \lstinline{pp::Instance::PostMessage} and \lstinline{pp::Instance::HandleMessage}. These methods are overridden in order to link the transport with the layer above.
+
+TODO: Class diagram showing Transport extending pp::Instance.
+
+
+% subsubsection implementing_the_transport_layer_in_cpp_ (end)
+
 % subsection transport_layer_design (end)
 
 \subsection{RPC layer} % (fold)
@@ -93,9 +140,13 @@ The RPC Layer is responsible for validating messages sent and received by the tr
 
 Messages \emph{received} by the transport could either be RPC \emph{requests}, \emph{responses}, or \emph{errors}. If a message is one of these three, it should forward the message to the layer above (the \emph{runtime}). If a message is not one of these three possibilities, the message should be ignored as it is not a RPC message.
 
+TODO: Diagram showing flow of messages handled and how they are filtered using the RPC Layer.
+
 The RPC layer can also provide RPC \emph{send} functions, that allow messages to be sent to the layer below. It allows RPC requests, responses and errors to be sent.
 
-Therefore, the RPC layer must have the following API:
+TODO: Diagram showing flow of messages sent and how they are filtered using the RPC Layer.
+
+Therefore, the RPC layer has the following API:
 \begin{itemize}
 	\item a \lstinline+handleMessage+ function, which accepts a payload and is called by the Transport layer when a message is received. \lstinline+handleMessage+ should filter through the messages received to categorise them as requests, responses or errors. Depending on which type of message it is, the layer can call different methods of the layer above.
 	\item a \lstinline+sendRequest+ function, which validates messages to be sent as requests, and forwards it down to the transport layer to be sent.
@@ -103,6 +154,26 @@ Therefore, the RPC layer must have the following API:
 	\item a \lstinline+sendError+ function, which validates messages to be sent as errors, and forwards it down to the transport layer to be sent.
 \end{itemize}
 
+\subsubsection{Choosing a protocol} % (fold)
+\label{ssub:choosing_a_protocol}
+We decide to use the JSON RPC 2.0 protocol. TODO: reasons + alternatives.
+% subsubsection choosing_a_protocol (end)
+
+\subsubsection{Implementing the JSON RPC Layer} % (fold)
+\label{ssub:implementing_the_jsonrpc_layer}
+To implement the API discussed above for JSON RPC, we first need to implement validators for messages. These determine what kind of message it is - request, response, error, or none. This is done on both the JavaScript and C++ implementations, as both will have to use the protocol. Then, when a message is received, the layer simply uses these validators to check what kind of message it is. At the same time, it extracts the relevant information about the message. For example, if it is a request, it extracts the method name, parameters, etc. 
+
+To implement the JSON RPC protocol validators, we adhere closely to the specification. Detailed unit tests are written, including passing and failing cases. The validator is then written. This is done for both the C++ and JavaScript implementations.
+
+As well as this, some helper functions were written to create valid RPC requests, responses, and errors.
+
+TODO: Class diagrams showing public API.
+
+On the C++ side, a RPCRequest object is created. The RPCRequest object encapsulates generic (i.e. not necessarily JSONRPC specific) information about a RPC call. This is passed by reference to the layers that need it, so that the validation and extraction only happens once.
+
+TODO: Show how RPCRequest is used between layers, instead of generic `message' objects.
+
+% subsubsection implementing_the_jsonrpc_layer (end)
 
 % subsection json_rpc_layer_design (end)
 
@@ -120,11 +191,26 @@ The API the runtime provides is therefore as follows:
 	\end{itemize}
 	\item handler functions (\lstinline+handleRequest+, \lstinline+handleResponse+, \lstinline+handleError+). The runtime will match the response's identifier with a previously sent request identifier. If a callback was provided, the callback will be called.
 \end{itemize}
+
+\subsubsection{Implementing the runtime layer} % (fold)
+\label{ssub:implementing_the_runtime_layer}
+The role of the runtime is different depending on the caller and the callee. Due to time constraints, the runtime has only been implemented for a JavaScript caller (client), and a C++ callee (server). However, the implementation is very similar, as it is only a language difference (in other words, the implementation in JavaScript will be the same as the implementation in C++ and vice versa).
+
+We first consider the implementation of the caller's RPC runtime, implemented in JavaScript. TODO.
+
+For the callee's RPC runtime, written in C++, the implementation involves finding a function. TODO. 
+% subsubsection implementing_the_runtime_layer (end)
+
 % subsection rpc_runtime_layer_design (end)
 
 \subsection{Stub Layer} % (fold)
 \label{sub:stub_layer_design}
 Finally, the stub layer is just a wrapper over the runtime layer's API, so that functions can be called `natively' from within the language. The stub layer also performs parameter type checking and marshalling.
+
+\subsubsection{Implementing the stub layer} % (fold)
+\label{ssub:implementing_the_stub_layer}
+
+% subsubsection implementing_the_stub_layer (end)
 % subsection stub_layer_design (end)
 
 % section rpc_framework_structure (end)

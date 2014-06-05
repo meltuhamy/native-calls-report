@@ -1,14 +1,56 @@
 \section{Generating RPC Code} % (fold)
 \label{sec:generating_rpc_code}
+To convert from a WebIDL file to a JavaScript and C++ RPC library, we need four main ingredients:
 
-TODO. Mention:
 \begin{itemize}
-	\item Overall approach to writing a code generator.
-	\item Choosing a parser vs writing one.
-	\item Existing parsers.
-	\item Using a parser to generate code.
-	\item Templating approach instead of normal code gen approach (AST->String).
+	\item WebIDL type bindings to JavaScript and C++
+	\item The WebIDL file(s) that define the types and interfaces of our module
+	\item A WebIDL parser
+	\item A generator that produces the relevant JavaScript and C++ files
 \end{itemize}
+
+In the previous section, we discussed the WebIDL bindings. In this section, we discuss the parser and generator needed to produce the relevant code.
+
+\subsection{WebIDL Parser} % (fold)
+\label{sub:webidl_parser_design}
+The WebIDL parser takes as input a WebIDL file, and returns as output an Abstract Syntax Tree (AST) representation of the file. For more information about how parsers work, please read the background section \ref{sec:parsing_and_generating} on page \pageref{sec:parsing_and_generating}. 
+
+Several open source WebIDL parsers exist, so we had a choice of using an existing parser or building our own. The advantage of building our own is that we can define the format of the AST so that it can be used directly with our generator. The disadvantage is the time and effort involved in writing the parser, as well as updating it if the WebIDL specification changes. The advantages of using an existing parser is that it will be kept relatively up to date and probably more stable, as most available parsers are unit tested to ensure they work properly. An existing parser will also be more complete, meaning they support most if not all of the WebIDL syntax and specification. For these reasons, we decided to use an existing WebIDL parser. But there was a few popular parsers to choose from. We compare and contrast the different implementations below.
+
+\begin{itemize}
+	\item Chromium's Blink WebIDL parser\footnote{\url{http://www.chromium.org/blink/webidl}}. 
+	TODO: Advantages, disadvantages
+	\item Mozilla's WebIDL Parser\footnote{\url{http://mxr.mozilla.org/mozilla-central/source/dom/bindings/parser/WebIDL.py}}.
+	TODO: Advantages, disadvantages
+	\item Robin Berjon's WebIDL2.js\footnote{\url{https://github.com/darobin/webidl2.js}}. 
+	TODO: Advantages, disadvantages
+
+\end{itemize}
+
+In the end, we decided to go for WebIDL2.js because... (TODO).
+
+% subsection webidl_parser_design (end)
+
+\subsection{Code Generators} % (fold)
+\label{sub:code_generators_design}
+The generator essentially does the reverse of a parser - it takes in an AST and returns a string representing the relevant code. However, sometimes the AST information was not in the format which we required, so we do a single pass through the AST, augment it, then use the augmented AST to generate the code. 
+
+
+TODO Diagram
+
+
+We use the augmented AST as a \emph{context} to be passed to the template engine. We also add some helper functions on top of the template engine, to simplify the actual template. The template engine then uses the context to substitute the relevant strings into the correct places. (TODO: Example).
+
+
+TODO: Mention how C++ macros were used to simplify templating.
+
+% subsection code_generators_design (end)
+
+\subsection{Implementation} % (fold)
+\label{sub:implementation_codegen}
+TODO
+% subsection implementation_codegen (end)
+
 % section generating_rpc_code (end)
 
 
