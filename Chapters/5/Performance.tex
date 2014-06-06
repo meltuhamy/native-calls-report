@@ -1,7 +1,191 @@
 \section{Performance Evaluation} % (fold)
 \label{sec:performance_evaluation}
-TODO. Mention:
-\begin{itemize}
-	\item 
-\end{itemize}
+TODO 
+
+
+We used the IDL file below to test transfer and processing performance:
+
+\begin{verbatim}
+dictionary dict {
+  DOMString str;
+  double d;
+  boolean b;
+};
+
+dictionary nestedDict {
+  DOMString topStr;
+  double topD;
+  boolean topB;
+  dict nested;
+};
+
+interface Benchmark{
+  long bench_long(long v);
+  double bench_double(double v);
+  DOMString bench_DOMString(DOMString v);
+  dict bench_dict(dict v);
+  nestedDict bench_nestedDict(nestedDict v);
+
+  sequence<long> bench_seq_long(sequence<long> v);
+  sequence<double> bench_seq_double(sequence<double> v);
+  sequence<DOMString> bench_seq_DOMString(sequence<DOMString> v);
+  sequence<dict> bench_seq_dict(sequence<dict> v);
+  sequence<nestedDict> bench_seq_nestedDict(sequence<nestedDict> v);
+
+  boolean printSeperator(DOMString tag);
+};
+\end{verbatim}
+
+\subsection{Round trip performance}\label{round-trip-performance}
+
+Measure the number of round trips performed in 1 second (RT/s).
+
+1 round trip corresponds to a full remote procedure call, starting from
+JavaScript, reaching the target function, returning from the function,
+and going back to the JavaScript.
+
+These results were calculated using benchmarkjs.
+
+\subsubsection{Single variable (1 non-array
+paramater)}\label{single-variable-1-non-array-paramater}
+
+\begin{longtable}[c]{@{}llll@{}}
+\toprule\addlinespace
+Type & Mean RT/s & Uncertainty & Number of runs
+\\\addlinespace
+\midrule\endhead
+long & 418 & $\pm$  1.79\% & 56
+\\\addlinespace
+double & 423 & $\pm$  2.08\% & 48
+\\\addlinespace
+DOMString & 420 & $\pm$  1.25\% & 43
+\\\addlinespace
+dict & 415 & $\pm$  2.39\% & 44
+\\\addlinespace
+nestedDict & 385 & $\pm$  1.29\% & 47
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+\subsubsection{Arrays of variable
+length}\label{arrays-of-variable-length}
+
+\begin{longtable}[c]{@{}llllll@{}}
+\toprule\addlinespace
+Array length & long RT/s & double RT/s & DOMString RT/s & dict RT/s &
+nestedDict RT/s
+\\\addlinespace
+\midrule\endhead
+10 & 403 $\pm$  2.20\% & 403 $\pm$  2.19\% & 378 $\pm$  1.48\% & 317 $\pm$  1.76\% & 244 $\pm$  1.81\%
+\\\addlinespace
+45 & 379 $\pm$  1.99\% & 384 $\pm$  2.01\% & 309 $\pm$  1.22\% & 182 $\pm$  3.03\% & 112 $\pm$  1.15\%
+\\\addlinespace
+100 & 354 $\pm$  2.01\% & 347 $\pm$  1.62\% & 234 $\pm$  2.59\% & 110 $\pm$  1.36\% & 60.07
+$\pm$  1.24\%
+\\\addlinespace
+450 & 237 $\pm$  1.18\% & 235 $\pm$  2.07\% & 102 $\pm$  1.48\% & 32.82 $\pm$  1.10\% & 15.83
+$\pm$  0.96\%
+\\\addlinespace
+1000 & 163 $\pm$  1.54\% & 160 $\pm$  1.04\% & 55.41 $\pm$  1.89\% & 15.39 $\pm$  1.06\% & 7.43
+$\pm$  1.29\%
+\\\addlinespace
+4500 & 49.39 $\pm$  1.67\% & 48.93 $\pm$  1.41\% & 14.60 $\pm$  0.75\% & 3.62 $\pm$  1.26\% &
+1.68 $\pm$  1.05\%
+\\\addlinespace
+10000 & 24.68 $\pm$  0.90\% & 24.50 $\pm$  1.00\% & 6.62 $\pm$  1.85\% & 1.62 $\pm$  1.68\% &
+0.75 $\pm$  1.81\%
+\\\addlinespace
+45000 & 5.99 $\pm$  1.37\% & 5.98 $\pm$  0.92\% & 1.28 $\pm$  2.92\% & 0.33 $\pm$  2.48\% & 0.15
+$\pm$  2.46\%
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+\subsection{C++ Library Time}\label{c-library-time}
+
+Measure the number of microseconds taken to handle a RPC call. This is
+the time it takes to detect it is an RPC call, extract paramaters,
+convert them, find the method, call it, pack the result, and post the
+message back to JS.
+
+The results are measured and averaged for the same runs that were
+performed above.
+
+\subsubsection{Single variable (1 non-array
+paramater)}\label{single-variable-1-non-array-paramater-1}
+
+\begin{longtable}[c]{@{}lll@{}}
+\toprule\addlinespace
+Type & Mean lib time/$\mu$s & Uncertainty (1 sd)
+\\\addlinespace
+\midrule\endhead
+long & 105.50 & 17.88
+\\\addlinespace
+double & 104.12 & 17.34
+\\\addlinespace
+DOMString & 103.98 & 17.55
+\\\addlinespace
+dict & 136.15 & 23.35
+\\\addlinespace
+nestedDict & 179.71 & 28.32
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+\subsubsection{Arrays of variable length and
+types}\label{arrays-of-variable-length-and-types}
+
+The table below shows the average time, in microseconds, it takes to
+process an array of variable lengths and types.
+
+\begin{longtable}[c]{@{}llllll@{}}
+\toprule\addlinespace
+Array length & long type & double type & DOMSTring type & dict type &
+nestedDict type
+\\\addlinespace
+\midrule\endhead
+10 & 125.40 & 125.91 & 197.42 & 453.41 & 861.02
+\\\addlinespace
+45 & 168.64 & 163.34 & 484.03 & 1512.79 & 3272.52
+\\\addlinespace
+100 & 242.70 & 245.74 & 906.05 & 3445.17 & 7009.90
+\\\addlinespace
+450 & 705.10 & 703.79 & 3734.62 & 13628.62 & 28198.18
+\\\addlinespace
+1000 & 1275.59 & 1354.86 & 7606.78 & 29582.43 & 63493.50
+\\\addlinespace
+4500 & 5547.10 & 5564.47 & 30485.21 & 132121.82 & 292827.69
+\\\addlinespace
+10000 & 11282.88 & 11376.26 & 68443.89 & 301437.50 & 632956.25
+\\\addlinespace
+45000 & 50532.42 & 50843.33 & 359133.64 & 1418791.67 & 3242286.00
+\\\addlinespace
+100000 & 104087.22 & 114020.00 & 799742.86 & 3319250.00 & 7347985.00
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+\subsection{JS Library performance}\label{js-library-performance}
+
+The JS library performance \textbf{without} validation has also been
+measured, however its performance impact is negligible. The slowest
+benchmark was found to take approx 3 microseconds (269,253 ops/sec
+$\pm$  1.90\%).
+
+\subsection{Analysis}\label{analysis}
+
+From the data, we can see that for small types, the most contributing
+factor to performance is the browser (e.g.~event system, etc.) and PPAPI
+libraries (how PPAPI implements postMessage). For example, sending a
+single long type takes 2392.34 microseconds (.002 seconds), but our
+library only spends 105.5 microseconds processing the call (less than
+5\% of the time).
+
+For large and complicated data, the impact of using the library becomes
+higher and higher. For example, sending 45000 nested objects (which are
+actually quite simple) has a total round-trip time of 6.67s, and a whole
+3.24 seconds of this is spent in our library (i.e.~half the time).
+
+TODO Analysis, graphs, conclusions.
+
 % section performance_evaluation (end)

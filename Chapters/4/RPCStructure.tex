@@ -282,7 +282,7 @@ Due to time constraints, RPC functionality has only been implemented one way, fr
 
 The user stub implementation using JavaScript is greatly simplified due to the fact that parameter packing only involves turning a function's parameters into an array, since the server stub is expecting \lstinline{pp::Var} objects, which correspond naturally to JavaScript types. In other words, the PPAPI performs all the marshalling for us by converting JavaScript objects on the caller side into \lstinline{pp::Var} objects on the callee side.
 
-However, to make it more useful for the JavaScript developer, the RPC framework will optionally perform \emph{type checking} on the caller side before calling the runtime. How JavaScript type checking is implemented is shown at a later section, but the basic idea is the use of JSON Schemas which define the JavaScript types we are expecting.
+However, to make it more useful for the JavaScript developer, the RPC framework will optionally perform \emph{type checking} on the caller side before calling the runtime. How JavaScript type checking is implemented is shown in the WebIDL bindings implementation section \ref{sub:webidl_implementation_in_javascript} on page \pageref{sub:webidl_implementation_in_javascript}, but the basic idea is the use of JSON Schemas which define the JavaScript types we are expecting.
 
 What we want to achieve on the JavaScript side is the ability to access the defined modules, interfaces, and most importantly functions on the C++ side in the most natural way possible. We achieve this by dynamically constructing a JavaScript object that holds all this information. The object maps interface names to maps of function names to function stubs. To make this clearer, here is an example of such an object, which we shall call an RPC Module.
 
@@ -333,7 +333,7 @@ function(){
 
   // before calling the runtime, we alter the callback
   var callback = function (d) {
-    //type checking
+    //type checking of the result
   };
 
 
@@ -363,7 +363,7 @@ public:
 
 Notice how we have combined the role of the RPC server stub to include marshalling, de-marshalling and calling the actual function implementation. This was done to simplify the framework on the C++ side, and also to expose some of the implementation details to the C++ developer. This is to allow the C++ developer to tweak the framework in order to get higher performance if they need it, or to customise a specific case. There a few cases where this might be the case. One case is when the developer wants to send and receive binary data. This is currently not supported, due to time constraints. In this case, the developer could go ahead and edit the generated code so that they can pass a \lstinline{pp::Var} to their function. Another example where this might be useful is if the developer wants to make the callback asynchronous, by creating a thread, doing computation, and sending the result at a later time. Again, this is not supported at this stage, but the developer can simply edit the \lstinline{call} function to allow this. In that sense, showing these implementation details gives power to the developer to allow them to do what they want, without forcing them to use a specific way of implementing their code.
 
-Finally, in listing \ref{code_serverstub_def}, we purposely don't show how the parameter/result (de)marshalling happens. The implementation of this is shown at a later section. (TODO add reference). 
+Finally, in listing \ref{code_serverstub_def}, we purposely don't show how the parameter/result (de)marshalling happens. The implementation of this is shown in the WebIDL bindings implementation section \ref{sub:webidl_implementation_in_cpp_} on page \pageref{sub:webidl_implementation_in_cpp_}.
 
 % subsubsection implementing_the_stub_layer (end)
 % subsection stub_layer_design (end)
