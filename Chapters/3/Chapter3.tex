@@ -2,15 +2,51 @@
 \label{Chapter3} 
 \lhead{Chapter 3. \emph{Related Work}} 
 
-\section{Native Client Acceleration Modules} % (fold)
+\section{Native Client Acceleration Modules (NaClAM)} % (fold)
 \label{sec:naclam}
 
-TODO: NaClAM. Mention:
-\begin{itemize}
-	\item Idea, example
-	\item Design, implementation
-	\item Advantages, disadvantages
-\end{itemize}
+In October 2012, John McCutchan at Google came up with the idea of using Native Client as a way to get native performance inside a normal JavaScript web application. He called it ``Native Client Acceleration Modules (NaClAM)'', with a slogan ``\emph{90\% Web App. Native Performance Where You Need It}''.
+
+NaClAM is essentially a simple event-based RPC framework that allowed sending and receiving JavaScript objects as well as binary data. The RPC framework worked by using \emph{event listeners} and \emph{handlers} on both the JavaScript hand C++ ends. 
+
+On the JavaScript side, a library called NaClAM.js was provided, which allowed developers to attach listeners to a particular module using the \lstinline{addEventListener(type,handler)} method. To send requests to the C++, the \lstinline{dispatchEvent} method is used. On the C++ side, messages are handled inside one overridden method called \lstinline{NaClAMModuleHandleMessage}. Here, checks are performed on the message received, and the appropriate method is called. Listing \ref{code_naclam_handle_message} shows an example of this. 
+
+\lstset{language=C++,caption={NaClAM C++ message handler},label=code_naclam_handle_message}
+\begin{code}
+void NaClAMModuleHandleMessage(const NaClAMMessage& message) {
+  if (message.cmdString.compare("floatsum") == 0) {
+    handleFloatSum(message);
+  } else if (message.cmdString.compare("addfloatarrays") == 0) {
+    handleAddFloats(message);
+  } else {
+    NaClAMPrintf("Got message I don't understand");
+  }
+}
+\end{code}
+
+\subsection{Message Format} % (fold)
+\label{sub:naclam_message_format}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.3\textwidth]{naclam-msg-format.pdf} 
+	\caption{A NaClAM message including binary frames}
+	\label{fig:naclam_msg_format}
+\end{figure}
+
+At the message passing level, NaClAM uses JavaScript/C++ strings to transport messages. These messages hold information about the message such as the command string (like ``\lstinline{floatsum}'' in listing \ref{code_naclam_handle_message}). The strings are constructed using the jsoncpp library. 
+
+Crucially, however, they also tell the framework how many binary \emph{frames} are expected to come after this message. Figure \ref{fig:naclam_msg_format} shows an example of a message containing $N$ frames. A frame is essentially a binary block of data sent by a separate call to \lstinline{PostMessage}. The receiver collects all the frames before triggering the event handler.
+
+% subsection naclam_message_format (end)
+
+\subsection{Advantages and Disadvantages} % (fold)
+\label{sub:naclam_advantages_and_disadvantages}
+NaClAM modules have the benefit of being simple and fast. There is a good distinction between the message information stored in the header and the message data stored as binary inside the frames. This allows developers to use the message header to implement event logic, while using the frames to transfer actual data. It also means that because the data is binary and almost no marshalling happens, the transfer speed is very fast, since binary data is \emph{shared} between JavaScript and C++.
+
+However, there are a few issues with using NaClAM modules. The first is a lack of overall, high-level structure. The developer has to be aware and understand exactly what the framework is doing behind the scenes to write their application, which adds more burden on the developer, especially since almost no documentation is provided. The second issue is how the message header types are implemented. Although the framework allows sending application data in binary frames, the header information is sent as JSON, and is manipulated by the jsoncpp library - so another library the developer needs to get used to. Importantly, this means the developer needs to unpack and pack the data they are sending in the header section by themselves by using the jsoncpp library. Another issue is how the framework does not use a callback approach to asynchronous remote procedure calls. In other words, to `return' a value from a C++ function back to JavaScript, a \emph{different} event needs to be triggered from the C++, and handled by the JavaScript library. In other words, two different events need to be managed in both C++ and JavaScript for only one RPC call which returns data. If there are many functions like this, the developer needs to manage several different events, which is tedious. Finally, although the framework has been demoed and gained a lot of popularity, it still seems to not be well tested, as no unit tests exist for either the C++ or JavaScript implementations have been written. This makes it feel like an experimental project, rather than a full, well supported framework. 
+
+Despite these issues, the Native Calls project was heavily influenced and inspired by the overall idea of the NaClAM project, especially its use cases and scenarios.
+% subsection naclam_advantages_and_disadvantages (end)
 
 % section naclam (end)
 
