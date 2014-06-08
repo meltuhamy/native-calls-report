@@ -83,13 +83,16 @@ SHA1=a6d0be6facada6b4f26c24ffb23eaa2da8df9bd9
 
 \subsection{Using the Pepper Plugin API (PPAPI)} % (fold)
 \label{sub:using_PPAPI}
-To interface with JS, the NaCl team wrote a library that allows extracting JavaScript types and other things. TODO.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{pp_var-class-diagram.pdf} 
+    \caption{A simplified class diagram showing the \lstinline{pp::Var} API}
+    \label{fig:pp_var_api}
+\end{figure}
 
-\begin{itemize}
-	\item General overview of what PPAPI is and why it's useful
-	\item Some basic example (maybe getting started example)
-	\item pp::Var
-\end{itemize}
+To interface with JavaScript, Native Client provides a C and C++ library that allows developers to easily control the browser. One important class that's used in all Native Client modules is the \lstinline{pp::Instance} class, which is initialised when the embed tag is loaded in the HTML page. The class also has the \lstinline{HandleMessage} and \lstinline{PostMessage} functions, which implement message passing between the JavaScript and the C++ module. In JavaScript, JavaScript primitive types as well as reference types can be sent using postMessage. In C++, they are sent and received as \lstinline{pp::Var} objects. Figure \ref{fig:pp_var_api} shows how the \lstinline{pp::Var} classes can be used. 
+
+Notice how C++ types can be extracted using the \lstinline{pp::Var} class. For example, we can extract a C++ \lstinline{double} from the \lstinline{pp::Var} using the \lstinline{pp::Var::AsDouble()} method. Arrays are sent and received as \lstinline{pp::VarArray} objects. JavaScript objects (dictionaries) are sent and received as \lstinline{pp::VarDictionary} objects. Binary data can be sent and received from and to the browser using the \lstinline{pp::VarArrayBuffer} class. The \lstinline{pp::VarArrayBuffer::map()} method returns a pointer to the sent binary data. 
 
 % subsection using_PPAPI (end)
 
