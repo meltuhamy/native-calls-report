@@ -5,7 +5,9 @@ Native Client (NaCl) can be thought of as a new type of plugin for the Google Ch
 
 \subsection{Portable Native Client} % (fold)
 \label{sub:portable_native_client}
-TODO PNaCl
+When Native Client was first released in 2011, it allowed operating system independent binary to run in a web application. However, it produced architecture-specific applications using the same source code. These were called nexe modules. For example, it produced x86 64 bit as well as i386 binaries. However, for the developer, distributing different binaries for the same application was tedious, and architecture specific distributions go against the general trend of the truly independent web platform.
+
+PNaCl was later introduced to solve the problem of lack of portability. Instead of producing architecture specific nexe executables, portable pexe modules are produced instead. These have a verified bitcode format. The PNaCl runtime, which runs as part of the browser, translates the bitcode into machine code. Because of their cross-platform nature, PNaCl (pexe) modules are allowed to run in Google Chrome without the user installing them, while NaCl (nexe) modules must be installed through the Chrome Web Store. However, NaCl modules allow inline assembly and different C standard library implementations, while PNaCl modules only support the newlib implementation and don't support architecture specific instructions.
 % subsection portable_native_client (end)
 
 \subsection{NaCl Modules and the Pepper API} % (fold)
