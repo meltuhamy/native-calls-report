@@ -2,7 +2,7 @@
 \label{sec:rpc_framework_structure}
 
 The structure of the RPC framework is based around the notion of layers. 
-Each layer solves a particular task, in order to achieve the goal of getting from a JavaScript stub to a C++ function, and back. Listing \ref{structurediagram} shows the overall structure and interactions of each layer.
+Each layer solves a particular task, in order to achieve the goal of getting from a JavaScript stub to a C++ function, and back. Figure \ref{fig:structurediagram} shows the overall structure and interactions of each layer.
 
 The advantages of this approach is that each layer is independent of the other. For example, if we choose a different RPC schema (i.e. something other than JSON RPC), we could easily replace the JSON RPC layer. Or, if we choose to have the C++ function on the server instead of as a Native Client module, we can easily change the transport layer to use AJAX requests or Web Sockets. 
 
@@ -11,57 +11,12 @@ The other advantage to this approach is that because the layers are independent 
 
 In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. Each layer is described in detail below.
 
-\lstset{language=c,caption={A layered approach to RPC},label=structurediagram}
-\begin{code}
-TODO: Turn it into a real diagram.
-+-------------------------------------------------------------------+
-|                           NaClRPCModule                           |
-|-------------------------------------------------------------------|
-|                                                                   |
-|                                                                   |
-|     +-------------------------------------------------------+     |
-|     |+-----------------------------------------------------+|     |
-|     || +--------------------+ Stub +----------------------+|| 1   |
-|     |+-----------------------------------------------------+|     |
-|     +-------------------------------------------------------+     |
-|                 +                      ^            ^             |
-|                 |                      |            |             |
-|                 |callRPC               |successCB   |errorCB      |
-|                 |                      |            |             |
-|                 v                      +            +             |
-|     +-------------------------------------------------------+     |
-|     |                        Runtime                        | 2   |
-|     +-------------------------------------------------------+     |
-|      +          +        +                ^           ^           |
-|      |          |        |                |handle     |           |
-|      |send      |send    |send            |Callback   |handle     |
-|      |Callback  |Error   |Request         |/handleCall|Error      |
-|      v          v        v                +           +           |
-|     +-------------------------------------------------------+     |
-|     |                        JSONRPC                        | 3   |
-|     +-------------------------------------------------------+     |
-|      +         +         +                ^                       |
-|      |         |         |                |                       |
-|      |sendRPC  |sendRPC  |sendRPC         |handleRPCCallback      |
-|      |Callback |Error    |Request         |/ handleRPCCall        |
-|      v         v         v                +                       |
-|     +-------------------------------------------------------+     |
-|     |                       Transport                       | 4   |
-|     +-------------------------------------------------------+     |
-|         +        +       +                ^                       |
-|         |        |       |                |                       |
-|         |        |       |                |                       |
-|         |on      |load   |postMessage     |handleMessage          |
-|         |        |       |                |                       |
-|         v        v       v                +                       |
-|     +-------------------------------------------------------+     |
-|     |+-----------------------------------------------------+|     |
-|     ||+-------------------+ NaClModule +------------------+|| 5   |
-|     |+-----------------------------------------------------+|     |
-|     +-------------------------------------------------------+     |
-|                                                                   |
-+-------------------------------------------------------------------+
-\end{code}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{rpc-structure-layers.pdf} 
+    \caption{A layered approach to RPC. Numbering shows message flow.}
+    \label{fig:structurediagram}
+\end{figure}
 
 
 \subsection{Transport layer} % (fold)
