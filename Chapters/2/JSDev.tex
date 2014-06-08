@@ -1,35 +1,112 @@
 \section{JavaScript Development} % (fold)
 \label{sec:javascript_development}
-Since JavaScript is ``the world's most misunderstood language''\footnote{\url{http://javascript.crockford.com/javascript.html}} (according to Douglas Crockford, author of JavaScript: The Good Parts\cite{crockfordjavascript}), this section briefly describes the main features of the language, as well as common design and development patterns.
+In this section, we show some common JavaScript patterns and code organisation techniques that are used throughout development.
 
-JavaScript is a dynamic, object oriented language. It was originally designed to run on web browsers, but it has gained popularity and is now used in many other domains, including server side development using node.js. 
+\subsection{JavaScript Modules} % (fold)
+\label{sub:javascript_modules}
+One way to achieve information hiding (like private data variables) is through the use of the \emph{module pattern}. Essentially, everything is wrapped in a function which is immediately invoked. Listing \ref{code_module_pattern_js} shows an example of this. Notice how the \lstinline{private} variable can't be accessed from outside. We can use this pattern to define encapsulated classes as in Listing \ref{code_js_module_classes}.
 
-\subsection{Syntax} % (fold)
-\label{sub:js_syntax}
-JavaScript has a C-based syntax. 
-% subsection js_syntax (end)
+\lstset{language=C,caption={An example of using the module pattern},label=code_module_pattern_js}
+\begin{code}
+var SingletonObject = (function(){
+  var private = 123;
+  //... other private variables here
+  return {
+    foo: function(){
+      console.log(private);
+    }
+    //... other exported public properties/methods here
+  }
+})();
 
-\subsection{Types} % (fold)
-\label{sub:js_types}
-JavaScript has primitive types, passed by value, as well as reference data types.
+SingletonObject.foo(); // output: 123
+\end{code}
+% subsection javascript_modules (end)
 
-The primitive types are \lstinline+string+, \lstinline+number+, \lstinline+boolean+, \lstinline+Null+ and \lstinline+Undefined+. Number types can be integer or floating-point, but internally all numbers are floating point values.
+\lstset{language=C,caption={JavaScript `classes' using the module pattern},label=code_js_module_classes}
+\begin{code}
+var MyClass = (function(){
+  var private = 23;
+  return function(){
+    return {
+      public: 12,
+      privatePlusPublic: function(){
+        return this.public + private;
+      }
+    }
+  };
+})();
 
-Reference types include Objects and Arrays. 
+var i = new MyClass();
+console.log(i instanceof MyClass); // true
+console.log(i.privatePlusPublic()); // 35
+\end{code}
 
+\subsection{File Organisation} % (fold)
+\label{sub:js_file_organisation}
+There are a few of ways to organise modules into different files. We discuss the two most popular schemes, AMD and CommonJS. 
 
-% subsection js_types (end)
+\subsubsection{Asynchronous Module Definition (AMD)} % (fold)
+\label{ssub:asynchronous_module_definition_}
+In AMD, modules are defined by specifying the dependencies and returning a single export from a factory function. The export could be a constant, a function, or any JavaScript object. Listing \ref{code_myclass_amd_module} defines a module that returns MyClass (which we saw in Listing \ref{code_js_module_classes}), as well as another module which depends on MyClass. 
 
-TODO: Finish of this section. Things to cover:
+\lstset{language=C,caption={MyClass AMD Module},label=code_myclass_amd_module}
+\begin{code}
+// MyClass.js
+define('MyClass', [], function(){
+  var private = 23;
+  return function(){
+    return {
+      public: 12,
+      privatePlusPublic: function(){
+        return this.public + private;
+      }
+    }
+  };
+});
 
-\begin{itemize}
-	\item Functions, closures
-	\item Objects, prototype inheritance
-	\item Patterns
-	\begin{itemize}
-		\item Modules
-		\item AMD vs common js
-	\end{itemize}
-\end{itemize}
+// MainClass.js
+define('MainClass', ['MyClass'], function(MyClass){
+  var i = new MyClass();
+  console.log(i.privatePlusPublic()); // 35
+});
+\end{code}
+
+The advantages of using AMD is that we do not need to explicitly insert \lstinline{<script />} tags in the HTML. It also makes it harder to set global variables, as they can only be set through the global \lstinline{window} object, all variables declared are local only to the module. Since the files are asynchronously loaded, there is no need for a build process. Finally, this allows lazily loading scripts only when you need them.
+A popular implementation of AMD which works in the browser is RequireJS. 
+
+The disadvantages of using AMD is that most of the time, all dependencies are fetched anyway - so there's no need for them to be loaded asynchronously. Also, having many dependencies generates several HTTP requests, which can impact performance. Finally, writing the define function call at every file can often get tedious.
+% subsubsection asynchronous_module_definition_ (end)
+
+\subsubsection{CommonJS Modules} % (fold)
+\label{ssub:commonjs_modules}
+CommonJS is another API that allows exporting modules from JavaScript files. Unlike AMD, it uses a straight forward, synchronous approach to module dependencies. Listing \ref{code_commonjs_modules} shows the same MyClass module implemented using CommonJS.
+
+\lstset{language=C,caption={MyClass CommonJS Module},label=code_commonjs_modules}
+\begin{code}
+// MyClass.js
+var private = 23;
+exports.MyClass = function(){
+  return {
+    public: 12,
+    privatePlusPublic: function(){
+      return this.public + private;
+    }
+  }
+};
+
+// MainClass.js
+var MyClass = require("./MyClass.js").MyClass;
+var i = new MyClass();
+console.log(i.privatePlusPublic()); // 35
+\end{code}
+
+Notice how only the objects in the \lstinline{exports} property are exported, so the \lstinline{private} variable is still only accessible from the MyClass.js file.
+
+The advantages of using CommonJS is that it has a much simpler, straight forward interface. The disadvantage is that it is only implemented natively on server-side projects. However, there is an open source library that allows CommonJS libraries to be used in the browser, called browserify. The tool `builds' the module, by concatenating all the dependencies together with each module. In the end, one script is inserted into the HTML page. The advantage of this is that it is only one HTTP request to get all the JavaScript functionality. One issue is that now, instead of simply reloading the browser every time we need to test some JavaScript, we now need to build the JavaScript using browserify. Although this might have been an issue in the past, nowadays there exist good tooling that improve efficiency, for example, file watchers that build the JavaScript quickly every time a module is saved.
+
+% subsubsection commonjs_modules (end)
+
+% subsection js_file_organisation (end)
 
 % section javascript_development (end)
