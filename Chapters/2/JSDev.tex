@@ -1,24 +1,86 @@
 \section{JavaScript Development} % (fold)
 \label{sec:javascript_development}
-Since JavaScript is ``the world's most misunderstood language''\footnote{\url{http://javascript.crockford.com/javascript.html}} (according to Douglas Crockford, author of JavaScript: The Good Parts\cite{crockfordjavascript}), this section briefly describes the main features of the language, as well as common design and development patterns.
+Since JavaScript is ``the world's most misunderstood language''\footnote{\url{http://javascript.crockford.com/javascript.html}} (according to Douglas Crockford, author of JavaScript: The Good Parts\cite{crockfordjavascript}), this section gives a \emph{very} brief overview of the languages, and explains some common features that are used throughout the implementation of this project.
 
 JavaScript is a dynamic, object oriented language. It was originally designed to run on web browsers, but it has gained popularity and is now used in many other domains, including server side development using node.js. 
 
-\subsection{Syntax} % (fold)
-\label{sub:js_syntax}
-JavaScript has a C-based syntax. 
-% subsection js_syntax (end)
+JavaScript is an implementation of the ECMAScript standard, which standardises the language implementations so that JavaScript programs can run in the same way across different browsers and platforms.
 
 \subsection{Types} % (fold)
 \label{sub:js_types}
 JavaScript has primitive types, passed by value, as well as reference data types.
 
-The primitive types are \lstinline+string+, \lstinline+number+, \lstinline+boolean+, \lstinline+Null+ and \lstinline+Undefined+. Number types can be integer or floating-point, but internally all numbers are floating point values.
+The primitive types are \lstinline+string+, \lstinline+number+, \lstinline+boolean+, \lstinline+Null+ and \lstinline+Undefined+. Number types can be integer or floating-point, but internally \emph{all} numbers are floating point values.
 
-Reference types include Objects and Arrays. 
+Reference types include Objects and Arrays. These can be declared using a literal syntax. Listing \ref{code_literals} shows an example, showing the syntax as well as some functionality of the language.
+
+\lstset{language=C,caption={Creating and assigning different variable objects},label=code_literals}
+\begin{code}
+var num = 23;
+var str = "hello!";
+var obj = {
+  greeting: "Welcome",
+  name: "John Smith"
+};
+
+console.log(obj.greeting+", "+obj.name); // "Welcome, John Smith"
+
+var nums = [1,2,3,4], sum = 0;
+for(var i = 0; i < nums.length; i++){
+  sum += nums[i];
+}
+console.log(sum); //10
+\end{code}
 
 
 % subsection js_types (end)
+
+\subsection{Functions, closures, and variable scope} % (fold)
+\label{sub:functions_closures_and_variable_scope}
+In JavaScript, functions are objects and can therefore be passed by reference just like any other object. Functions also have a literal notation. A function can be called with more than the defined parameters, or less, and the parameters can be accessed using the \lstinline{arguments} variable. Listing \ref{code_js_functions_examples} shows some examples which illustrate these features.
+
+\lstset{language=C,caption={JavaScript Functions},label=code_js_functions_examples}
+\begin{code}
+// functions are first-class citizens and can have a literal notation
+var fn = function(nameParam){
+  console.log("Hello, " + nameParam);
+
+  //can have more than the defined parameters, access through arguments
+  if(arguments.length > 1){
+  	console.log("argument 2: " + arguments[1]);
+  }
+}
+fn("John Smith"); // "Hello, John Smith"
+fn("John Smith", 23); // "Hello, John Smith" "argument 2: 23"
+\end{code}
+
+When a function is part of an object, other properties of that object can be accessed in the functions scope using the \lstinline{this} keyword. You can manually define the \lstinline{this} object (also known as the \emph{context}), by calling the function using the \lstinline{apply} method. Listing \ref{code_js_using_this} shows an example of using \lstinline{this}.
+
+\lstset{language=C,caption={Using the \lstinline{this} keyword},label=code_js_using_this}
+\begin{code}
+var obj = {
+  foo: function(){ console.log("Hello, "+this.name); },
+  name: "John"
+};
+obj.foo(); // "Hello, John"
+
+var obj2 = {
+  name: "Smith"
+};
+obj.foo.apply(obj2); // "Hello, Smith"
+
+\end{code}
+
+Instances of functions can be created using the \lstinline{new} keyword. When this happens, properties inside \lstinline{this} extend the `prototype chain'. \lstinline{prototype} is a property of every JavaScript object and is used for inheritance. If a property can't be found in the \lstinline{this} object, it is looked up in the \lstinline{prototype} object. If it can't be found in the prototype, it is looked up in the prototype's prototype, and so on until it is either found or prototype is null. Listing \ref{code_js_prototypes} shows an example of this.
+
+\lstset{language=C,caption={Using \lstinline{new} and \lstinline{prototype} },label=code_js_prototypes}
+\begin{code}
+var Animal = function(){
+  
+};
+\end{code}	
+
+% subsection functions_closures_and_variable_scope (end)
 
 TODO: Finish of this section. Things to cover:
 
