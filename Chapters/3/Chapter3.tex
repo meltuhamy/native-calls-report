@@ -130,19 +130,115 @@ Some frameworks such as FireBreath\footnote{\url{http://www.firebreath.org}} hav
 \label{sec:apache_thrift_cross_language_services}
 Apache Thrift is a framework that allows cross-language services development. Originally developed at Facebook, it was designed to provide reliable, efficient communication between languages and services. Many languages are supported, including C++, Java, and JavaScript. Thrift provides a cross-platform generator that can generate Thrift client and server pairs, where the client and server can be using different languages. Similar to other RPC frameworks, it uses its own IDL file format, Thrift IDL. The IDL file is used to generate code to support different languages.
 
-An unofficial port for Apache Thrift has been made for Native Client \footnote{\url{https://github.com/ahilss/thrift-nacl}}, however, all of the communication code is still hand coded. The performance of using Thrift for Native Client is unclear, as there is no protocol implemented using PPAPI.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.3\textwidth]{thrift-stack.pdf} 
+    \caption{The layers of the Apache Thrift RPC stack}
+    \label{fig:thrift-stack}
+\end{figure}
 
-TODO: Better structure this section. Mention:
-\begin{itemize}
-	\item Idea, example.
-	\item Typical implementation example, use cases.
-	\item Advantages, disadvantages
-\end{itemize}
+Thrift's implementation is based around layers in the thrift stack (Figure \ref{fig:thrift-stack}). The transport layer is responsible for the transfer of messages. The protocol layer is an interface that defines how certain data structures should be mapped into a transferable format, for example, JSON, XML, binary, etc. The process layer simply takes an input protocol, processes it using a handler, and writes to the output protocol. Finally the server sets up all the layers below it so that the system is functional as a whole.
+
+In the following code listings, we give snippets showing how Apache Thrift is used to create a C++ server and JavaScript client. These were adapted from the original Thrift tutorial, which is available online\footnote{\url{http://thrift.apache.org/tutorial/}}.
+
+\lstset{language=C++,caption={Thrift IDL File},label=code_thrift_idl_file}
+\begin{lstlisting}
+enum Operation {
+  ADD = 1,
+  SUBTRACT = 2,
+  MULTIPLY = 3,
+  DIVIDE = 4
+}
+
+struct Work {
+  1: i32 num1 = 0,
+  2: i32 num2,
+  3: Operation op,
+  4: optional string comment,
+}
+
+service Calculator extends shared.SharedService {
+   void ping(),
+   i32 add(1:i32 num1, 2:i32 num2),
+   i32 calculate(1:i32 logid, 2:Work w)
+}
+\end{lstlisting}
+
+\lstset{language=C++,caption={A Thrift C++ Server},label=code_thrift_cpp_server}
+\begin{lstlisting}
+class CalculatorHandler : public CalculatorIf {
+ public:
+  CalculatorHandler() {}
+
+  int32_t add(const int32_t n1, const int32_t n2) {
+    return n1 + n2;
+  }
+
+  int32_t calculate(const int32_t logid, const Work &work) {
+    int32_t val;
+
+    switch (work.op) {
+    case Operation::ADD:
+      val = work.num1 + work.num2;
+      break;
+    // ... other cases and implementation
+    }
+    return val;
+  }
+
+};
+
+int main(int argc, char **argv) {
+  // code here to set up processor, transport and protocol.
+
+  TSimpleServer server(processor,
+                       serverTransport,
+                       transportFactory,
+                       protocolFactory);
+
+
+  server.serve();
+  return 0;
+}
+\end{lstlisting}
+
+
+\lstset{language=C,caption={JavaScript client for Thrift service},label=code_thrift_js_client}
+\begin{lstlisting}
+function calc() {
+  var transport = new Thrift.Transport("/thrift/service/tutorial/");
+  var protocol  = new Thrift.Protocol(transport);
+  var client    = new CalculatorClient(protocol);
+
+  var work = new Work()
+  work.num1 = 1;
+  work.num2 = 2;
+  work.op = 1; //1==ADD
+
+  var result = client.calculate(1, work);
+
+  console.log(result); //3
+  
+}
+\end{lstlisting}
+
+
+\subsection{Advantages and Disadvantages} % (fold)
+\label{sub:thrift_advantages_and_disadvantages}
+Apache Thrift is a large library which seems to be well supported and used by both industry giants and the open source community. Because the Thrift IDL file is used to generate both clients and servers in more than a dozen languages, it seems that it is generic enough to be used in any language context. Thrift's implementation seems to be well structured, showing a clear separation of concerns between each component. 
+
+However, there are a few issues with getting Thrift to work with Native Client. First, although it might be possible to implement a transport layer for thrift using postMessage in JavaScript, the C++ end (Native Client), writing a protocol for PPAPI might prove challenging. Moreover, the JSON protocol implementation uses strings instead of actual JSON objects, so this will probably impact performance, as it adds yet another marshalling step. For example, consider sending a JavaScript object from the web browser to a C++ function as a parameter. The marshalling will probably look something like this: we want to send a JavaScript Object, so Thrift for JavaScript will convert it into a JavaScript string in the protocol layer. When the JavaScript string is sent, it is marshalled by PPAPI as a \lstinline{pp::Var}, which is then marshalled as a \lstinline{std::string} using \lstinline{pp::Var::AsString()}. Thrift for C++ will then take this string and de-marshal it, in order to construct a C++ object. Finally, the C++ object is passed to the C++ concrete function. When we add on to this the fact that JavaScript strings are the slowest primitive types to transfer (according to our benchmarks in Section \ref{sec:performance_evaluation}, on page \pageref{sec:performance_evaluation}), we can see that the performance impact might actually make a big difference in an application. To avoid this, several changes will need to be made on many of the layers discussed above, which might prove to be a challenging, non-trivial task.
+
+Finally, although unofficial port for Apache Thrift has been made for Native Client \footnote{\url{https://github.com/ahilss/thrift-nacl}}, all of the communication code is still hand coded. The performance of using Thrift for Native Client is unclear, as there is no protocol implemented using PPAPI.
+
+
+% subsection thrift_advantages_and_disadvantages (end)
 
 % section apache_thrift_cross_language_services (end)
 
 
 \section{JSON-RPC Implementations} % (fold)
+We briefly discussed the use of the JSON protocol RPC in background section \ref{sub:json_xml_rpc_intro} on page \pageref{sub:json_xml_rpc_intro}. Here, we discuss implementations of the protocol in JavaScript and C++.
 
 TODO: Better structure this section. Include:
 \begin{itemize}
