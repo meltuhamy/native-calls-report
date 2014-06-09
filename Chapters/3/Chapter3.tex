@@ -50,14 +50,78 @@ Despite these issues, the Native Calls project was heavily influenced and inspir
 
 % section naclam (end)
 
-\section{Node.js C++ Bindings} % (fold)
+\section{Node.js C++ Addons} % (fold)
 \label{sec:node_js_c_bindings}
-TODO: node.js C++ bindings. Mention:
-\begin{itemize}
-	\item Idea, example
-	\item Typical implementation example
-	\item Advantages, disadvantages
-\end{itemize}
+Node.js is a JavaScript platform built on top of Chrome's V8 JavaScript engine that allows running JavaScript on server-side applications. Listing \ref{code_nodejs_http_server} shows an example of a node.js HTTP server.
+
+\lstset{language=C,caption={A simple node.js HTTP server},label=code_nodejs_http_server}
+\begin{code}
+var http = require('http');
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+}).listen(1337, '127.0.0.1');
+console.log('Server running at http://127.0.0.1:1337/');
+\end{code}
+
+Although the full JavaScript implementation is available to use in Node.js, it is possible to extend node.js by implementing addons. Addons are implemented using C++, and therefore allow developers to use efficient C++ functionality inside node.js. In fact, the C++ API allows you to wrap a C++ object with a JavaScript one. Listing \ref{code_nodejs_object_wrap_eg} shows an example of this.
+
+\lstset{language=C++,caption={A node.js object wrapper},label=code_nodejs_object_wrap_eg}
+\begin{code}
+class MyObject : public node::ObjectWrap {
+ public:
+  static void Init(v8::Handle<v8::Object> exports);
+
+ private:
+  explicit MyObject(double value = 0);
+  ~MyObject();
+
+  static v8::Handle<v8::Value> New(const v8::Arguments& args);
+  static v8::Handle<v8::Value> PlusOne(const v8::Arguments& args);
+  static v8::Persistent<v8::Function> constructor;
+  double value_;
+};
+\end{code}
+
+In the \lstinline{Init} function, low level instructions that tell the JavaScript engine about the new object are given. In the \lstinline{New} member function, an instance of the C++ object is `wrapped' with the JavaScript object, using the node.js library. This means when we implement the \lstinline{PlusOne} method, we can `unwrap' the JavaScript object to get the C++ object instance, then perform the intended operation. Listing \ref{code_nodejs_wrapped_objects} shows how this works with the \lstinline{PlusOne} method.
+
+\lstset{language=C++,caption={Implementing methods on wrapped objects},label=code_nodejs_wrapped_objects}
+\begin{code}
+Handle<Value> MyObject::PlusOne(const Arguments& args) {
+  HandleScope scope;
+
+  MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.This());
+  obj->value_ += 1;
+
+  return scope.Close(Number::New(obj->value_));
+}
+\end{code}
+
+Now, we can create an instance of the object in JavaScript as though it was a native JavaScript object. Listing \ref{code_nodejs_cpp_js_object} shows an example of this.
+
+\lstset{language=C,caption={Using the C++ object from JavaScript},label=code_nodejs_cpp_js_object}
+\begin{code}
+var obj = new addon.MyObject(10);
+console.log( obj.plusOne() ); // 11
+console.log( obj.plusOne() ); // 12
+\end{code}
+
+\subsection{Advantages and Disadvantages} % (fold)
+\label{sub:nodejs_cpp_advantages_and_disadvantages}
+The idea of simply extending JavaScript to use your own C++ methods is powerful. We saw how the class we created in C++ can be accessed directly from JavaScript in a native way. It also means we have full control over the data the function can accept, as the actual JavaScript object reference is passed into the C++. In other words, there is no parameter marshalling - everything is native.
+
+The obvious issue we have with C++ addons to JavaScript is how can we use them in \emph{browser} JavaScript? Well the answer is, we can't. However, we are able to set up a \emph{local} node.js server which we can communicate with using the browser. This can be done over the websocket protocol, which allow full-duplex communication over a single TCP connection. However, now the issue of parameter marshalling packing, and RPC comes to play. 
+
+
+\subsection{Similar approaches in the browser} % (fold)
+\label{sub:cpp_js_similar_approaches_in_the_browser}
+
+% subsection cpp_js_similar_approaches_in_the_browser (end)
+Although node.js addons do not actually solve our problem, the basic idea of them is that JavaScript is somehow \emph{extended} to allow running C++ functionality. Conventional browser plugins such as NPAPI based plugins or ActiveX browser plugins have similar interfaces. Through the plugin framework, it is possible to directly access the DOM on the page where the plugin is embedded - a bit like how this is done in node.js, as described above. 
+
+Some frameworks such as FireBreath\footnote{\url{http://www.firebreath.org}} have been created that allow cross platform plugins that support ActiveX, NPAPI, etc. A crucial difference for us, however, is that these plugin frameworks depend on direct access to the DOM of the page in the browser. When we remove this feature, these frameworks will not work. Native Client \emph{only} allows access to the DOM through postMessage, and the data sent is \emph{passed by value}, so the data is essentially copied across to the C++ module. What this means is that the RPC framework will need to handle all marshalling as well as transport of the messages between C++ and JavaScript.
+% subsection nodejs_cpp_advantages_and_disadvantages (end)
+
 % section node_js_c_bindings (end)
 
 
