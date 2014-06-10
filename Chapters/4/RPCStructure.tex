@@ -61,7 +61,26 @@ However, much of the details of this can be `inferred' using the name of the mod
 var myModule = new NaClModule({"name": "MyModule"});
 \end{code}
 
-The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. TODO: Examples of attribute inference using config.
+The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. The id attribute is the same as the name attribute. The name and the type are inferred using the config object. Listing \ref{} shows an example of a config object and the corresponding embed attributes.
+
+\lstset{language=C,caption={},label=code_}
+\begin{code}
+// the NaClConfig object is a global object. 
+// If required keys aren't found here, they are looked up in a 
+// default config object, defined inside the framework.
+window.NaClConfig = {
+  TOOLCHAIN: "pnacl",
+  CONFIG: "Debug"
+};
+var myModule = new NaClModule({"name": "MyModule"});
+
+/* produced embed tag:
+<embed name="MyModule"                   //using name in constructor
+       src="./pnacl/Debug/MyModule.nmf"  //using config and name
+       id="MyModule"                     //using name
+       type="application/x-pnacl" />     //using config
+*/
+\end{code}
 
 Once a NaClModule is constructed, it can be loaded using the \lstinline{load} method, which can take in an optional callback function as a parameter. The load method essentially inserts the \lstinline{embed} element into the page. Event handlers can be registered with the module by using the \lstinline{on} method. For example:
 
@@ -74,18 +93,30 @@ myModule.on('crash', function(){...});
 ...
 \end{code}
 
-TODO: Class diagram showing NaClModule and Transport.
-
 The NaClModule class therefore makes it easy to create and alter the HTML embed tag using only JavaScript. 
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{transport-module-embed-clsdgrm.pdf} 
+    \caption{Class diagram showing the encapsulation of NaClModule and Embed element inside a Transport object in JavaScript}
+    \label{fig:naclmodule-embed}
+\end{figure}
+
 Now, the transport layer encapsulate a NaClModule object, which is used as a low-level communication object in order to send and receive messages. 
+
+
 % subsubsection implementing_the_transport_layer_in_javascript (end)
 
 \subsubsection{Implementing the Transport Layer in C++} % (fold)
 \label{ssub:implementing_the_transport_layer_in_cpp_}
 Since the C++ module is a singleton, the structure of the transport in C++ is a lot simpler. Essentially, the transport is a class that extends the \lstinline{pp::Instance} class provided by the PPAPI, which we use to send and receive messages using \lstinline{pp::Instance::PostMessage} and \lstinline{pp::Instance::HandleMessage}. These methods are overridden in order to link the transport with the layer above.
 
-TODO: Class diagram showing Transport extending pp::Instance.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.3\textwidth]{transport-instance-clsdgrm.pdf} 
+    \caption{Class diagram showing inheritance of \lstinline{pp::Instance} in C++}
+    \label{fig:instance-transport}
+\end{figure}
 
 
 % subsubsection implementing_the_transport_layer_in_cpp_ (end)
@@ -96,13 +127,16 @@ TODO: Class diagram showing Transport extending pp::Instance.
 \label{sub:json_rpc_layer_design}
 The RPC Layer is responsible for validating messages sent and received by the transport. 
 
-Messages \emph{received} by the transport could either be RPC \emph{requests}, \emph{responses}, or \emph{errors}. If a message is one of these three, it should forward the message to the layer above (the \emph{runtime}). If a message is not one of these three possibilities, the message should be ignored as it is not a RPC message.
+Messages \emph{received} by the transport could either be RPC \emph{requests}, \emph{responses}, or \emph{errors}. If a message is one of these three, it should forward the message to the layer above (the \emph{runtime}). An illustration of this is shown in Figure \ref{fig:rpclayer_messages_runtime}. If a message is not one of these three possibilities, the message should be ignored as it is not a RPC message.
 
-TODO: Diagram showing flow of messages handled and how they are filtered using the RPC Layer.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{rpclayer-messages-runtime.pdf} 
+    \caption{Flow diagram showing how messages are filtered by the RPC layer and forwarded to the runtime layer}
+    \label{fig:rpclayer_messages_runtime}
+\end{figure}
 
 The RPC layer can also provide RPC \emph{send} functions, that allow messages to be sent to the layer below. It allows RPC requests, responses and errors to be sent.
-
-TODO: Diagram showing flow of messages sent and how they are filtered using the RPC Layer.
 
 Therefore, the RPC layer has the following API:
 \begin{itemize}
