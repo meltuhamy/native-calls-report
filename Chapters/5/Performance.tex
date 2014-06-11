@@ -1,9 +1,118 @@
-\section{Performance Evaluation} % (fold)
+\section{Performance Testing Environment} % (fold)
+\label{sec:performance_testing_environment}
+TODO: Machine specs etc.
+% section performance_testing_environment (end)
+
+\section{Application Performance Evaluation} % (fold)
+\label{sec:application_performance_evaluation}
+\subsection{Bullet Physics Performance} % (fold)
+\label{sub:bullet_physics_performance}
+The simplest way to measure how well the physics engine performs using Native Calls RPC is to analyse the frames per second for a range of scenes of varying complexity. We identify what is the biggest impact to the frames per second by measuring how long it takes to make a request and get a response for each frame rendered. We also measure how long it takes to perform the actual simulation step. Finally, we compare these measurements with the original implementation, which was implemented using Native Client Acceleration Modules and tweaked for performance using ArrayBuffers.
+
+\subsubsection{Results and comparison} % (fold)
+\label{ssub:results_bullet_physics_performance}
+\begin{table}[h]
+\begin{tabular}{lllll}
+\multirow{2}{*}{Scene}               & \multicolumn{3}{l}{Time /ms}              & \multirow{2}{*}{Frames per second} \\
+                                     & Frame Rendering & Round trip & Simulation &                                    \\ \hline
+\multicolumn{1}{l|}{10 Jenga Blocks} & 16.90           & 16.67      & 0.08       & 60                                 \\
+\multicolumn{1}{l|}{20 Jenga Blocks} & 16.95           & 16.54      & 1.17       & 55                                 \\
+\multicolumn{1}{l|}{Random Shapes}   & 16.95           & 16.39      & 0.67       & 60                                 \\
+\multicolumn{1}{l|}{250 Cubes}       & 16.95           & 16.39      & 1.67       & 60                                 \\
+\multicolumn{1}{l|}{500 Cylinders}   & 24.39           & 21.74      & 4.93       & 54                                 \\
+\multicolumn{1}{l|}{1000 Cubes}      & 37.04           & 37.04      & 10.97      & 32                                 \\
+\multicolumn{1}{l|}{2000 Cubes}      & 66.67           & 66.67      & 26.94      & 18                                 \\
+                                     &                 &            &            &                                    \\
+                                     &                 &            &            &                                   
+\end{tabular}
+\end{table}
+
+Note, the numbers shown above show the amount of time and frame rate at the lowest point when the scene is rendering. Due to the nature of the simulation, the simulation time can vary depending on the scene. To illustrate this, Figure \ref{fig:graph-1k-cubes-nativecalls} shows a graph of milliseconds against time. The arrow points at the time when 1000 cubes were loaded into the scene. We can see the jump of the round trip time, where it seems to level off at around 37 milliseconds. But the physics simulation time goes up as the physics simulation becomes more complex. For example, at 15:41:30, the graph levels off at around 10 milliseconds. This gives us an indication as to what is most affecting the frame rate. In this case, it is mostly the framework time as opposed to the simulation time.
+
+When we analyse a similar graph but this time for 2000 cubes, shown in Figure \ref{fig:graph-2k-cubes-nativecalls}, we can see a significant increase in the simulation time. This time, both the framework and the simulation time are bottle necks to the frame rate. However, when the 2000 cubes are no longer moving / interacting (they are now stationary on the floor), we can see in Figure \ref{fig:graph-2k-cubes-nativecalls-leveling} that obviously the main bottle neck is the RPC framework.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{graph-1k-cubes-nativecalls.png} 
+    \caption{Graph showing contributing factors to the frame rate, when simulating 1000 cubes falling from the sky using Native Calls}
+    \label{fig:graph-1k-cubes-nativecalls}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{graph-2k-cubes-nativecalls.png} 
+    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes falling from the sky using Native Calls}
+    \label{fig:graph-2k-cubes-nativecalls}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{graph-2k-cubes-nativecalls-leveling.png} 
+    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes stationary on the floor using Native Calls}
+    \label{fig:graph-2k-cubes-nativecalls-leveling}
+\end{figure}
+
+
+We now compare these results with the NaClAM implementation. For more information about how the NaClAM implementation works, you can read the related work section \ref{sec:naclam} on page \pageref{sec:naclam}. The table below shows the time taken for the NaClAM module to simulate the same scenes as before.
+
+\begin{table}[h]
+\begin{tabular}{lllll}
+\multirow{2}{*}{Scene}               & \multicolumn{3}{l}{Time /ms}              & \multirow{2}{*}{Frames per second} \\
+                                     & Frame Rendering & Round trip & Simulation &                                    \\ \hline
+\multicolumn{1}{l|}{10 Jenga Blocks} & 16.90           & 16.90      & 0.11       & 60                                 \\
+\multicolumn{1}{l|}{20 Jenga Blocks} & 16.95           & 16.95      & 0.12       & 60                                 \\
+\multicolumn{1}{l|}{Random Shapes}   & 16.95           & 16.39      & 0.62       & 59                                 \\
+\multicolumn{1}{l|}{250 Cubes}       & 16.95           & 16.39      & 1.62       & 60                                 \\
+\multicolumn{1}{l|}{500 Cylinders}   & 17.54           & 21.74      & 5.45       & 59                                 \\
+\multicolumn{1}{l|}{1000 Cubes}      & 17.54           & 37.04      & 11.76      & 57                                 \\
+\multicolumn{1}{l|}{2000 Cubes}      & 29.41           & 31.78      & 25.75      & 40                                 \\
+                                     &                 &            &            &                                    \\
+                                     &                 &            &            &                                   
+\end{tabular}
+\end{table}
+
+Notice how the simulation time is more or less the same for both implementation. This makes sense, since both implementations have more or less the same C++ implementation.
+
+We can also see that the main bottle neck to performance in this implementation is the simulation time, and not the RPC framework. This can be seen clearly from the graph in Figure \ref{fig:graph-2k-cubes-naclam}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{graph-2k-cubes-naclam.png} 
+    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes falling from the sky using NaClAM}
+    \label{fig:graph-2k-cubes-naclam}
+\end{figure}
+
+% subsubsection results_bullet_physics_performance (end)
+
+\subsubsection{Analysis} % (fold)
+\label{ssub:bullet_physics_performanceanalysis}
+From the graphs and tables, we can obviously see how the performance impact of our framework gets higher and higher with more and more objects being sent. We can see how, for large scenes such as 2000 cubes, the Native Calls implementation performs almost two times worse than the NaClAM implementation. However, for smaller scenes, the two implementations have very similar performance.
+
+The most likely reason for this is because of the data marshalling on the C++ Native Calls RPC framework implementation. In our implementation, the data is processed in O(n) time in order to convert the received \lstinline{pp::VarArray} array of objects into a \lstinline{std::vector} of \lstinline{struct}s. In section \ref{sec:performance_evaluation} (page \pageref{sec:performance_evaluation}), we find that converting WebIDL dictionaries is also quite slow, compared to converting an array of numbers. When we compare this to the NaClAM implementation, we can see that the NaClAM version has almost O(1) time, since the data is only being read and is shared between the module and JavaScript. This is explained in section \ref{sec:naclam} on page \pageref{sec:naclam}.
+% subsubsection bullet_physics_performanceanalysis (end)
+
+
+\subsubsection{Implementation} % (fold)
+\label{ssub:implementation_bullet_physics_performance}
+The actual implementation of the RPC library for the physics simulation is discussed in the qualitative evaluation section. Here we discuss how we measure and plot the data that we saw in the tables and graphs above.
+
+We measure three things - the frame rate, the simulation time, and the round trip time. To measure the frame rate, we simply add to a total of frames requested. A frame is requested by the browser automatically in order to achieve a frame rate of 60 frames per second. This is done using the \lstinline{window.requestAnimationFrame} API, which conveniently takes the computation time for rendering and processing the frame into account. This is why the frame rate drops when the round trip time and simulation time increases. We measure the total simulation time inside the C++ application by taking time stamps between and after the simulation step and calculating the difference. We send it back with the results every time we do the simulation. Finally, we calculate the round trip time by taking timestamps before and after the RPC call and taking a difference. We average all this data over a period of one second and send it to be plotted.
+
+The graph is plotted in real time in the browser, but we make sure not to use the same \lstinline{window} object - as this will impact JavaScript performance and give us skewed results. Instead, we send the data to be plotted in a different window - which in Chrome corresponds to a different process. HighCharts was chosen to quickly and easily create the realtime graph with very little configuration. The demo and performance graphs are available on GitHub.
+
+% subsubsection implementation_bullet_physics_performance (end)
+
+% subsection bullet_physics_performance (end)
+
+\subsection{Oniguruma Regular Expressions Performance} % (fold)
+\label{sub:oniguruma_regular_expressions_performance}
+TODO
+% subsection oniguruma_regular_expressions_performance (end)
+% section application_performance_evaluation (end)
+
+\section{Framework Performance Evaluation} % (fold)
 \label{sec:performance_evaluation}
-TODO 
-
-
-We used the IDL file below to test transfer and processing performance:
+We used the IDL file below to test transfer and processing performance of individual operations:
 
 \begin{verbatim}
 dictionary dict {
@@ -36,15 +145,22 @@ interface Benchmark{
 };
 \end{verbatim}
 
+We will use the generated RPC library to test the framework's performance. We will do this by making RPC calls and measuring how long it takes.
+
 \subsection{Round trip performance}\label{round-trip-performance}
 
-Measure the number of round trips performed in 1 second (RT/s).
+We measure the number of round trips performed in one second (round trips per second, RT/s).
 
-1 round trip corresponds to a full remote procedure call, starting from
-JavaScript, reaching the target function, returning from the function,
-and going back to the JavaScript.
+One round trip corresponds to a full remote procedure call, starting from JavaScript, reaching the target function, returning from the function, and going back to the JavaScript. This is illustrated in Figure \ref{fig:rpc_roundtrip}.
 
-These results were calculated using benchmarkjs.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{RoundTrip.pdf} 
+    \caption{A depiction of the round trip time from JavaScript to C++}
+    \label{fig:rpc_roundtrip}
+\end{figure}
+
 
 \subsubsection{Single variable (1 non-array
 paramater)}\label{single-variable-1-non-array-paramater}

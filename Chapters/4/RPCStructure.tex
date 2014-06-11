@@ -113,7 +113,7 @@ Since the C++ module is a singleton, the structure of the transport in C++ is a 
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.3\textwidth]{transport-instance-clsdgrm.pdf} 
+    \includegraphics[width=0.25\textwidth]{transport-instance-clsdgrm.pdf} 
     \caption{Class diagram showing inheritance of \lstinline{pp::Instance} in C++}
     \label{fig:instance-transport}
 \end{figure}
@@ -148,7 +148,7 @@ Therefore, the RPC layer has the following API:
 
 \subsubsection{Choosing a protocol} % (fold)
 \label{ssub:choosing_a_protocol}
-We decide to use the JSON RPC 2.0 protocol. TODO: reasons + alternatives.
+To implement the RPC layer, we need to choose a RPC protocol. We decided to go for the simplest protocol, which is JSON RPC. We discussed the advantages of using JSON RPC in the related work section, but there are also some benefits to do with using PPAPI to implement marshalling. Since we are using \lstinline{pp::Var}, more or less all of the JavaScript types are marshalled for us using PPAPI when we use postMessage. One alternative would have been to implement a binary based protocol, like the Ice protocol, which uses Google Protocol Buffers. There are a couple of reasons why we did not take this approach. The first is that there is an extra marshalling step in both JavaScript and C++, since we're sending and receiving binary. This adds to the complexity of both ends. The other issue is that Protocol Buffers for JavaScript aren't officially supported by Google, they are just implemented by a member of the open source community on GitHub. Finally, it is unclear whether a performance gain or loss will be achieved when we use Protocol Buffers. However, if time permitted, it would have been an interesting experiment to test different protocol implementations and measure their performance characteristics. But for now, we decided to go for the simplest approach of using JSON RPC via PPAPI.
 % subsubsection choosing_a_protocol (end)
 
 \subsubsection{Implementing the JSON RPC Layer} % (fold)
@@ -159,11 +159,7 @@ To implement the JSON RPC protocol validators, we adhere closely to the specific
 
 As well as this, some helper functions were written to create valid RPC requests, responses, and errors.
 
-TODO: Class diagrams showing public API.
-
-On the C++ side, a RPCRequest object is created. The RPCRequest object encapsulates generic (i.e. not necessarily JSONRPC specific) information about a RPC call. This is passed by reference to the layers that need it, so that the validation and extraction only happens once.
-
-TODO: Show how RPCRequest is used between layers, instead of generic `message' objects.
+On the C++ side, a RPCRequest object is created. The RPCRequest object encapsulates generic (i.e. not necessarily JSON RPC specific) information about a RPC call. This is passed by reference to the layers that need it, so that the validation and extraction only happens once.
 
 % subsubsection implementing_the_jsonrpc_layer (end)
 
@@ -251,7 +247,9 @@ rpcRuntime->AddServerStub("MyInterface::Foo", new ServerStub_MyInterface_Foo);
 
 \end{code}
 
-The \lstinline{AddServerStub} method works by simply maintaining a \lstinline{std::map} of \lstinline{std::string} method names to \lstinline{RPCServerStub} objects. Notice how the stubs are `flat' with respect to interfaces. What I mean here is how encapsulation is done using name mangling. This was done to simplify stubs, as in the end, interfaces are singletons which have a straightforward, static, API. In other words, since interfaces are stateless, we only represent the functions that an interface has. This greatly simplifies both the framework and code generation. However, (TODO: disadvantages). We hide the details of the ServerStub as this is discussed in the stub layer section.
+The \lstinline{AddServerStub} method works by simply maintaining a \lstinline{std::map} of \lstinline{std::string} method names to \lstinline{RPCServerStub} objects. Notice how the stubs are `flat' with respect to interfaces. What I mean here is how encapsulation is done using name mangling. This was done to simplify stubs, as in the end, interfaces are singletons which have a straightforward, static, API. In other words, since interfaces are stateless, we only represent the functions that an interface has. This greatly simplifies both the framework and code generation. However, implementing WebIDL interfaces in this way means we are limiting the implementation to only include functions (WebIDL operations), but WebIDL allows defining other interface members such as fields and constants. Since our main concern in this project was to use WebIDL to implement RPC functions we decided to stick to a simple approach of defining functions in C++, which is just through normal, namespaced function definitions in header files. The alternative, which could be a future extension, would have been to implement interfaces as classes. 
+
+We hide the details of the ServerStub as this is discussed in the stub layer section (\ref{sub:stub_layer_design}, page \pageref{sub:stub_layer_design}).
 
 Now that the stubs are registered with the runtime, when we receive a RPC request, the JSON RPC layer will call the runtime's \lstinline{HandleRequest} method. This will look up the string name of the function being called in the map, in order to get the corresponding RPCServerStub. If it exists, the stub's \lstinline{call} method is called.
 
