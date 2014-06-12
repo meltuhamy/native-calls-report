@@ -1,6 +1,8 @@
 \section{Performance Testing Environment} % (fold)
 \label{sec:performance_testing_environment}
-TODO: Machine specs etc.
+TODO: Machine specs, software versions, etc.
+
+TODO: Benchmarkjs, uncertainties calculation.
 % section performance_testing_environment (end)
 
 \section{Application Performance Evaluation} % (fold)
@@ -25,6 +27,7 @@ The simplest way to measure how well the physics engine performs using Native Ca
                                      &                 &            &            &                                    \\
                                      &                 &            &            &                                   
 \end{tabular}
+\caption{Bullet physics performance using Native Calls implementation}
 \end{table}
 
 Note, the numbers shown above show the amount of time and frame rate at the lowest point when the scene is rendering. Due to the nature of the simulation, the simulation time can vary depending on the scene. To illustrate this, Figure \ref{fig:graph-1k-cubes-nativecalls} shows a graph of milliseconds against time. The arrow points at the time when 1000 cubes were loaded into the scene. We can see the jump of the round trip time, where it seems to level off at around 37 milliseconds. But the physics simulation time goes up as the physics simulation becomes more complex. For example, at 15:41:30, the graph levels off at around 10 milliseconds. This gives us an indication as to what is most affecting the frame rate. In this case, it is mostly the framework time as opposed to the simulation time.
@@ -69,6 +72,7 @@ We now compare these results with the NaClAM implementation. For more informatio
                                      &                 &            &            &                                    \\
                                      &                 &            &            &                                   
 \end{tabular}
+\caption{Bullet physics performance using NaClAM implementation}
 \end{table}
 
 Notice how the simulation time is more or less the same for both implementation. This makes sense, since both implementations have more or less the same C++ implementation.
@@ -106,15 +110,34 @@ The graph is plotted in real time in the browser, but we make sure not to use th
 
 \subsection{Oniguruma Regular Expressions Performance} % (fold)
 \label{sub:oniguruma_regular_expressions_performance}
+To get an insight of the performance of the oniguruma library for Native Client using Native Calls, we shall count the number of regular expression matches. We compare this to running the engine in Node JS server natively, and then using WebSockets to get functionality in the browser.
+
+\subsubsection{Results and comparison} % (fold)
+\label{ssub:onig_results_and_comparison}
 TODO
+% subsubsection onig_results_and_comparison (end)
+
+\subsubsection{Analysis} % (fold)
+\label{ssub:onig_analysis}
+TODO
+% subsubsection onig_analysis (end)
+
+\subsubsection{Implementation} % (fold)
+\label{ssub:onig_implementation}
+Again, the actual implementation of the library is discussed later on in the evaluation. In this section, we discuss how we measure the number of matches.
+
+TODO.
+% subsubsection onig_implementation (end)
+
 % subsection oniguruma_regular_expressions_performance (end)
 % section application_performance_evaluation (end)
 
 \section{Framework Performance Evaluation} % (fold)
 \label{sec:performance_evaluation}
-We used the IDL file below to test transfer and processing performance of individual operations:
+We used the IDL file shown in Listing \ref{code_webidl_benchmarks} to test transfer and processing performance of individual operations:
 
-\begin{verbatim}
+\lstset{language=C,caption={WebIDL file used for benchmarking},label=code_webidl_benchmarks}
+\begin{code}
 dictionary dict {
   DOMString str;
   double d;
@@ -140,10 +163,8 @@ interface Benchmark{
   sequence<DOMString> bench_seq_DOMString(sequence<DOMString> v);
   sequence<dict> bench_seq_dict(sequence<dict> v);
   sequence<nestedDict> bench_seq_nestedDict(sequence<nestedDict> v);
-
-  boolean printSeperator(DOMString tag);
 };
-\end{verbatim}
+\end{code}
 
 We will use the generated RPC library to test the framework's performance. We will do this by making RPC calls and measuring how long it takes.
 
@@ -162,124 +183,98 @@ One round trip corresponds to a full remote procedure call, starting from JavaSc
 \end{figure}
 
 
-\subsubsection{Single variable (1 non-array
-paramater)}\label{single-variable-1-non-array-paramater}
+\begin{table}[h]
+\begin{tabular}{l|lll}
+\textbf{Type}       & \textbf{Mean RT/s} & \textbf{Uncertainty} & \textbf{Number of runs} \\ \hline
+\textbf{long}       & 418                & $\pm$1.79\%              & 56                      \\
+\textbf{double}     & 423                & $\pm$2.08\%              & 48                      \\
+\textbf{DOMString}  & 420                & $\pm$1.25\%              & 43                      \\
+\textbf{dict}       & 415                & $\pm$2.39\%              & 44                      \\
+\textbf{nestedDict} & 385                & $\pm$1.29\%              & 47                     
+\end{tabular}
+\caption{Round trip performance of sending a single parameter}
+\label{table:roundtrip_single_param}
+\end{table}
 
-\begin{longtable}[c]{@{}llll@{}}
-\toprule\addlinespace
-Type & Mean RT/s & Uncertainty & Number of runs
-\\\addlinespace
-\midrule\endhead
-long & 418 & $\pm$  1.79\% & 56
-\\\addlinespace
-double & 423 & $\pm$  2.08\% & 48
-\\\addlinespace
-DOMString & 420 & $\pm$  1.25\% & 43
-\\\addlinespace
-dict & 415 & $\pm$  2.39\% & 44
-\\\addlinespace
-nestedDict & 385 & $\pm$  1.29\% & 47
-\\\addlinespace
-\bottomrule
-\end{longtable}
 
-\subsubsection{Arrays of variable
-length}\label{arrays-of-variable-length}
+\begin{table}[h]
+\begin{tabular}{l|lllll}
+\multirow{2}{*}{\textbf{Array Length}} & \multicolumn{5}{l}{\textbf{Round trips per second}}                                        \\
+                                       & \textbf{long} & \textbf{double} & \textbf{DOMString} & \textbf{dict} & \textbf{nestedDict} \\ \hline
+\textbf{10}                            & 403 $\pm$2.20\%   & 403 $\pm$2.19\%     & 378 $\pm$1.48\%        & 317 $\pm$1.76\%   & 244 $\pm$1.81\%         \\
+\textbf{45}                            & 379 $\pm$1.99\%   & 384 $\pm$2.01\%     & 309 $\pm$1.22\%        & 182 $\pm$3.03\%   & 112 $\pm$1.15\%         \\
+\textbf{100}                           & 354 $\pm$2.01\%   & 347 $\pm$1.62\%     & 234 $\pm$2.59\%        & 110 $\pm$1.36\%   & 60.07 $\pm$1.24\%       \\
+\textbf{450}                           & 237 $\pm$1.18\%   & 235 $\pm$2.07\%     & 102 $\pm$1.48\%        & 32.82 $\pm$1.10\% & 15.83 $\pm$0.96\%       \\
+\textbf{1000}                          & 163 $\pm$1.54\%   & 160 $\pm$1.04\%     & 55.41 $\pm$1.89\%      & 15.39 $\pm$1.06\% & 7.43 $\pm$1.29\%        \\
+\textbf{4500}                          & 49.39 $\pm$1.67\% & 48.93 $\pm$1.41\%   & 14.60 $\pm$0.75\%      & 3.62 $\pm$1.26\%  & 1.68 $\pm$1.05\%        \\
+\textbf{10000}                         & 24.68 $\pm$0.90\% & 24.50 $\pm$1.00\%   & 6.62 $\pm$1.85\%       & 1.62 $\pm$1.68\%  & 0.75 $\pm$1.81\%        \\
+\textbf{45000}                         & 5.99 $\pm$1.37\%  & 5.98 $\pm$0.92\%    & 1.28 $\pm$2.92\%       & 0.33 $\pm$2.48\%  & 0.15 $\pm$2.46\%       
+\end{tabular}
+\caption{Round trip performance for arrays of different lengths and types}
+\label{table:roundtrip_array}
+\end{table}
 
-\begin{longtable}[c]{@{}llllll@{}}
-\toprule\addlinespace
-Array length & long RT/s & double RT/s & DOMString RT/s & dict RT/s &
-nestedDict RT/s
-\\\addlinespace
-\midrule\endhead
-10 & 403 $\pm$  2.20\% & 403 $\pm$  2.19\% & 378 $\pm$  1.48\% & 317 $\pm$  1.76\% & 244 $\pm$  1.81\%
-\\\addlinespace
-45 & 379 $\pm$  1.99\% & 384 $\pm$  2.01\% & 309 $\pm$  1.22\% & 182 $\pm$  3.03\% & 112 $\pm$  1.15\%
-\\\addlinespace
-100 & 354 $\pm$  2.01\% & 347 $\pm$  1.62\% & 234 $\pm$  2.59\% & 110 $\pm$  1.36\% & 60.07
-$\pm$  1.24\%
-\\\addlinespace
-450 & 237 $\pm$  1.18\% & 235 $\pm$  2.07\% & 102 $\pm$  1.48\% & 32.82 $\pm$  1.10\% & 15.83
-$\pm$  0.96\%
-\\\addlinespace
-1000 & 163 $\pm$  1.54\% & 160 $\pm$  1.04\% & 55.41 $\pm$  1.89\% & 15.39 $\pm$  1.06\% & 7.43
-$\pm$  1.29\%
-\\\addlinespace
-4500 & 49.39 $\pm$  1.67\% & 48.93 $\pm$  1.41\% & 14.60 $\pm$  0.75\% & 3.62 $\pm$  1.26\% &
-1.68 $\pm$  1.05\%
-\\\addlinespace
-10000 & 24.68 $\pm$  0.90\% & 24.50 $\pm$  1.00\% & 6.62 $\pm$  1.85\% & 1.62 $\pm$  1.68\% &
-0.75 $\pm$  1.81\%
-\\\addlinespace
-45000 & 5.99 $\pm$  1.37\% & 5.98 $\pm$  0.92\% & 1.28 $\pm$  2.92\% & 0.33 $\pm$  2.48\% & 0.15
-$\pm$  2.46\%
-\\\addlinespace
-\bottomrule
-\end{longtable}
+Tables \ref{table:roundtrip_array} and \ref{table:roundtrip_single_param} show the number of round trips performed in a second for RPC calls with a single parameter and different array lengths. To compare these times, Figure \ref{fig:arraylength-time-plot} shows a column chart visualisation of the data.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{arraylength-time-plot.pdf} 
+    \caption{The round trip time for arrays of different lengths and types}
+    \label{fig:arraylength-time-plot}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{arraylength-time-cpp-plot.pdf} 
+    \caption{The C++ library time for arrays of different lengths and types}
+    \label{fig:arraylength-time-cpp-plot}
+\end{figure}
+
+
 
 \subsection{C++ Library Time}\label{c-library-time}
 
-Measure the number of microseconds taken to handle a RPC call. This is
-the time it takes to detect it is an RPC call, extract paramaters,
+We measure the number of microseconds taken to handle a RPC call. This is
+the time it takes to detect it is an RPC call, extract parameters,
 convert them, find the method, call it, pack the result, and post the
 message back to JS.
 
 The results are measured and averaged for the same runs that were
-performed above.
+performed above. Tables \ref{table:cpp_lib_time_single_param} and \ref{table:cpp_lib_time_arrays} show the results, and Figure \ref{fig:arraylength-time-cpp-plot} shows a visualisation of the data.
 
-\subsubsection{Single variable (1 non-array
-paramater)}\label{single-variable-1-non-array-paramater-1}
 
-\begin{longtable}[c]{@{}lll@{}}
-\toprule\addlinespace
-Type & Mean lib time/$\mu$s & Uncertainty (1 sd)
-\\\addlinespace
-\midrule\endhead
-long & 105.50 & 17.88
-\\\addlinespace
-double & 104.12 & 17.34
-\\\addlinespace
-DOMString & 103.98 & 17.55
-\\\addlinespace
-dict & 136.15 & 23.35
-\\\addlinespace
-nestedDict & 179.71 & 28.32
-\\\addlinespace
-\bottomrule
-\end{longtable}
+\begin{table}[h]
+\begin{tabular}{l|ll}
+\textbf{Type}       & \textbf{Mean lib time/$\mu$s} & \textbf{Uncertainty (1 sd)} \\ \hline
+\textbf{long}       & 105.50                    & 17.88                       \\
+\textbf{double}     & 104.12                    & 17.34                       \\
+\textbf{DOMString}  & 103.98                    & 17.55                       \\
+\textbf{dict}       & 136.15                    & 23.35                       \\
+\textbf{nestedDict} & 179.71                    & 28.32                      
+\end{tabular}
+\caption{Mean C++ library time for sending and receiving single parameters of different types}
+\label{table:cpp_lib_time_single_param}
+\end{table}
 
-\subsubsection{Arrays of variable length and
-types}\label{arrays-of-variable-length-and-types}
 
-The table below shows the average time, in microseconds, it takes to
-process an array of variable lengths and types.
-
-\begin{longtable}[c]{@{}llllll@{}}
-\toprule\addlinespace
-Array length & long type & double type & DOMSTring type & dict type &
-nestedDict type
-\\\addlinespace
-\midrule\endhead
-10 & 125.40 & 125.91 & 197.42 & 453.41 & 861.02
-\\\addlinespace
-45 & 168.64 & 163.34 & 484.03 & 1512.79 & 3272.52
-\\\addlinespace
-100 & 242.70 & 245.74 & 906.05 & 3445.17 & 7009.90
-\\\addlinespace
-450 & 705.10 & 703.79 & 3734.62 & 13628.62 & 28198.18
-\\\addlinespace
-1000 & 1275.59 & 1354.86 & 7606.78 & 29582.43 & 63493.50
-\\\addlinespace
-4500 & 5547.10 & 5564.47 & 30485.21 & 132121.82 & 292827.69
-\\\addlinespace
-10000 & 11282.88 & 11376.26 & 68443.89 & 301437.50 & 632956.25
-\\\addlinespace
-45000 & 50532.42 & 50843.33 & 359133.64 & 1418791.67 & 3242286.00
-\\\addlinespace
-100000 & 104087.22 & 114020.00 & 799742.86 & 3319250.00 & 7347985.00
-\\\addlinespace
-\bottomrule
-\end{longtable}
+\begin{table}[h]
+\begin{tabular}{l|lllll}
+\multirow{2}{*}{\textbf{Array Length}} & \multicolumn{5}{l}{\textbf{Time / $\mu$s}}                                                                             \\
+                                       & \textbf{long} & \textbf{double} & \textbf{DOMSTring} & \textbf{dict} & \textbf{nestedDict} \\ \hline
+\textbf{10}                            & 125.40             & 125.91               & 197.42                  & 453.41             & 861.02                   \\
+\textbf{45}                            & 168.64             & 163.34               & 484.03                  & 1512.79            & 3272.52                  \\
+\textbf{100}                           & 242.70             & 245.74               & 906.05                  & 3445.17            & 7009.90                  \\
+\textbf{450}                           & 705.10             & 703.79               & 3734.62                 & 13628.62           & 28198.18                 \\
+\textbf{1000}                          & 1275.59            & 1354.86              & 7606.78                 & 29582.43           & 63493.50                 \\
+\textbf{4500}                          & 5547.10            & 5564.47              & 30485.21                & 132121.82          & 292827.69                \\
+\textbf{10000}                         & 11282.88           & 11376.26             & 68443.89                & 301437.50          & 632956.25                \\
+\textbf{45000}                         & 50532.42           & 50843.33             & 359133.64               & 1418791.67         & 3242286.00               \\
+\textbf{100000}                        & 104087.22          & 114020.00            & 799742.86               & 3319250.00         & 7347985.00              
+\end{tabular}
+\caption{Mean C++ library time for sending and receiving arrays of different lengths and types}
+\label{table:cpp_lib_time_arrays}
+\end{table}
 
 \subsection{JS Library performance}\label{js-library-performance}
 
@@ -302,6 +297,8 @@ higher and higher. For example, sending 45000 nested objects (which are
 actually quite simple) has a total round-trip time of 6.67s, and a whole
 3.24 seconds of this is spent in our library (i.e.~half the time).
 
-TODO Analysis, graphs, conclusions.
+The most likely reason for this is that the C++ library takes O(n) time to process the data in order to marshal it, by converting it from a \lstinline{pp::VarArray} into a \lstinline{std::vector}.
+
+TODO: Reasons why DOMString and dictionaries take longer than other types?
 
 % section performance_evaluation (end)
