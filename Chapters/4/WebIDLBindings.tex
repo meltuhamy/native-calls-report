@@ -131,8 +131,7 @@ In the end, I decided to go for the vector approach, for the following reasons:
 
 \subsubsection{Transferring contiguous number types as binary} % (fold)
 \label{ssub:transferring_binary}
-\emph{\textbf{DRAFT COMMENT:} I haven't implemented this. Should it therefore be in the design section or some other section e.g. a future extensions section?} 
-
+TODO: Move this to future work section
 
 So far we have been discussing how to transfer a sequence of any type. This is represented in WebIDL as \lstinline{sequence<T>}, where \lstinline{T} could be any type, including dictionary types. But there is one case where it makes sense to send the data as binary data, through the use of ArrayBuffers. This is when we want to send a contiguous array of numeric type, for example, an array of floats. 
 
