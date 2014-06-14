@@ -3,13 +3,21 @@ TODO:
   \item Better graphs
   \item Better graph captions, explain what the graph shows properly.
   \item Show the tables and graphs together so it's easier to compare.
-  \item Move `implementation' sections to the start.
 \end{itemize}
 \section{Performance Testing Environment} % (fold)
 \label{sec:performance_testing_environment}
-TODO: Machine specs, software versions, etc.
+To test the framework and applications, we use the following machine specification:
+\begin{itemize}
+  \item Processor: 2.3 GHz Intel Core i7 (1 processor, 4 cores)
+  \item Memory: 8GB 1600 MHz DDR3. 256KB L2 cache per core; 6 MB L3 cache
+  \item Graphics: NVIDIA GeForce GT 650M 1024 MB
+  \item OS: Mac OS X 10.9.3
+  \item Google Chrome version: 35.0.1916.153 (Official Build 274914) 
+  \item V8 version: 3.25.28.18
+  \item Blink version: 537.36 (@175075)
+\end{itemize}
 
-TODO: Benchmarkjs, uncertainties calculation.
+We use Benchmark JS\footnote{\url{http://benchmarkjs.com/}} to easily and accurately measure the amount of time taken to run JavaScript code. Benchmark JS uses high-resolution timers (microsecond precision) and automatically runs the function we wish to test enough times so that it returns statistically significant results. 
 % section performance_testing_environment (end)
 
 \section{Application Performance Evaluation} % (fold)
@@ -18,80 +26,166 @@ TODO: Benchmarkjs, uncertainties calculation.
 \label{sub:bullet_physics_performance}
 The simplest way to measure how well the physics engine performs using Native Calls RPC is to analyse the frames per second for a range of scenes of varying complexity. We identify what is the biggest impact to the frames per second by measuring how long it takes to make a request and get a response for each frame rendered. We also measure how long it takes to perform the actual simulation step. Finally, we compare these measurements with the original implementation, which was implemented using Native Client Acceleration Modules and tweaked for performance using ArrayBuffers.
 
+\subsubsection{Setup} % (fold)
+\label{ssub:bullet_performance_setup}
+To test the implementation, we use seven physics scenes. A screenshot of each scene is shown in Figure \ref{fig:bullet_screenshots}. Apart from the Jenga scenes, each scene starts with all the objects falling from the sky and crashing on the ground.
+
+We measure three things - the frame rate, the simulation time, and the round trip time. To measure the frame rate, we simply add to a total of frames requested. A frame is requested by the browser automatically in order to achieve a frame rate of 60 frames per second. This is done using the \lstinline{window.requestAnimationFrame} API, which conveniently takes the computation time for rendering and processing the frame into account. This is why the frame rate drops when the round trip time and simulation time increases. We measure the total simulation time inside the C++ application by taking time stamps between and after the simulation step and calculating the difference. We send it back with the results every time we do the simulation. Finally, we calculate the round trip time by taking timestamps before and after the RPC call and taking a difference. We average all this data over a period of one second and send it to be plotted.
+
+For each second, the average time per frame is calculated. This is the inverse of frames per second, and we call this period the \emph{frame time}. During that time, a RPC request is made and a response is received. We call the period between making a request and receiving a response the \emph{RPC time}. We calculate these times and average them for each second for a period of 20 seconds - the \emph{elapsed time}. Figure \ref{fig:frame-time-vis} shows a visualisation of this terminology.
+
+The graph is plotted in real time in the browser, but we make sure not to use the same \lstinline{window} object - as this will impact JavaScript performance and give us skewed results. Instead, we send the data to be plotted in a different window - which in Chrome corresponds to a different process. HighCharts was chosen to quickly and easily create the realtime graph with very little configuration.
+
+The actual implementation of the RPC library for the physics simulation is discussed in the qualitative evaluation section.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{FrameTimeVisualisation.pdf} 
+    \caption{A graphical representation showing the times measured.}
+    \label{fig:frame-time-vis}
+\end{figure}
+
+\begin{figure}
+        \centering
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{jenga_10.png}
+                \caption{Jenga 10}
+                \label{fig:screenshot_jenga_10}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{jenga_20.png}
+                \caption{Jenga 20}
+                \label{fig:screenshot_jenga_20}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{random_shapes.png}
+                \caption{Random Shapes}
+                \label{fig:random_shapes}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{cubes_250.png}
+                \caption{250 Cubes}
+                \label{fig:cubes_250}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{cylinders_500.png}
+                \caption{500 Cylinders}
+                \label{fig:cylinders_500}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{cubes_1000.png}
+                \caption{1000 Cubes}
+                \label{fig:cubes_1000}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.45\textwidth}
+                \includegraphics[width=\textwidth]{cubes_2000.png}
+                \caption{2000 Cubes}
+                \label{fig:cubes_2000}
+        \end{subfigure}
+        \caption{The bullet physics scenes used in the benchmark}\label{fig:bullet_screenshots}
+\end{figure}
+
+
+% subsubsection bullet_performance_setup (end)
+
 \subsubsection{Results and comparison} % (fold)
 \label{ssub:results_bullet_physics_performance}
-\begin{table}[h]
-\begin{tabular}{lllll}
-\multirow{2}{*}{Scene}               & \multicolumn{3}{l}{Time /ms}              & \multirow{2}{*}{Frames per second} \\
-                                     & Frame Rendering & Round trip & Simulation &                                    \\ \hline
-\multicolumn{1}{l|}{10 Jenga Blocks} & 16.90           & 16.67      & 0.08       & 60                                 \\
-\multicolumn{1}{l|}{20 Jenga Blocks} & 16.95           & 16.54      & 1.17       & 55                                 \\
-\multicolumn{1}{l|}{Random Shapes}   & 16.95           & 16.39      & 0.67       & 60                                 \\
-\multicolumn{1}{l|}{250 Cubes}       & 16.95           & 16.39      & 1.67       & 60                                 \\
-\multicolumn{1}{l|}{500 Cylinders}   & 24.39           & 21.74      & 4.93       & 54                                 \\
-\multicolumn{1}{l|}{1000 Cubes}      & 37.04           & 37.04      & 10.97      & 32                                 \\
-\multicolumn{1}{l|}{2000 Cubes}      & 66.67           & 66.67      & 26.94      & 18                                 \\
-                                     &                 &            &            &                                    \\
-                                     &                 &            &            &                                   
-\end{tabular}
-\caption{Bullet physics performance using Native Calls implementation}
-\end{table}
-
-Note, the numbers shown above show the amount of time and frame rate at the lowest point when the scene is rendering. Due to the nature of the simulation, the simulation time can vary depending on the scene. To illustrate this, Figure \ref{fig:graph-1k-cubes-nativecalls} shows a graph of milliseconds against time. The arrow points at the time when 1000 cubes were loaded into the scene. We can see the jump of the round trip time, where it seems to level off at around 37 milliseconds. But the physics simulation time goes up as the physics simulation becomes more complex. For example, at 15:41:30, the graph levels off at around 10 milliseconds. This gives us an indication as to what is most affecting the frame rate. In this case, it is mostly the framework time as opposed to the simulation time.
-
-When we analyse a similar graph but this time for 2000 cubes, shown in Figure \ref{fig:graph-2k-cubes-nativecalls}, we can see a significant increase in the simulation time. This time, both the framework and the simulation time are bottle necks to the frame rate. However, when the 2000 cubes are no longer moving / interacting (they are now stationary on the floor), we can see in Figure \ref{fig:graph-2k-cubes-nativecalls-leveling} that obviously the main bottle neck is the RPC framework.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{graph-1k-cubes-nativecalls.png} 
-    \caption{Graph showing contributing factors to the frame rate, when simulating 1000 cubes falling from the sky using Native Calls}
-    \label{fig:graph-1k-cubes-nativecalls}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{graph-2k-cubes-nativecalls.png} 
-    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes falling from the sky using Native Calls}
-    \label{fig:graph-2k-cubes-nativecalls}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{graph-2k-cubes-nativecalls-leveling.png} 
-    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes stationary on the floor using Native Calls}
-    \label{fig:graph-2k-cubes-nativecalls-leveling}
-\end{figure}
-
-
-We now compare these results with the NaClAM implementation. For more information about how the NaClAM implementation works, you can read the related work section \ref{sec:naclam} on page \pageref{sec:naclam}. The table below shows the time taken for the NaClAM module to simulate the same scenes as before.
 
 \begin{table}[h]
-\begin{tabular}{lllll}
-\multirow{2}{*}{Scene}               & \multicolumn{3}{l}{Time /ms}              & \multirow{2}{*}{Frames per second} \\
-                                     & Frame Rendering & Round trip & Simulation &                                    \\ \hline
-\multicolumn{1}{l|}{10 Jenga Blocks} & 16.90           & 16.90      & 0.11       & 60                                 \\
-\multicolumn{1}{l|}{20 Jenga Blocks} & 16.95           & 16.95      & 0.12       & 60                                 \\
-\multicolumn{1}{l|}{Random Shapes}   & 16.95           & 16.39      & 0.62       & 59                                 \\
-\multicolumn{1}{l|}{250 Cubes}       & 16.95           & 16.39      & 1.62       & 60                                 \\
-\multicolumn{1}{l|}{500 Cylinders}   & 17.54           & 21.74      & 5.45       & 59                                 \\
-\multicolumn{1}{l|}{1000 Cubes}      & 17.54           & 37.04      & 11.76      & 57                                 \\
-\multicolumn{1}{l|}{2000 Cubes}      & 29.41           & 31.78      & 25.75      & 40                                 \\
-                                     &                 &            &            &                                    \\
-                                     &                 &            &            &                                   
+    \begin{subtable}[h]{\textwidth}
+        \centering
+\begin{tabular}{l|lll|lll|lll|lll}
+\multirow{3}{*}{Scene} & \multicolumn{9}{l|}{Time / ms}                                                          & \multicolumn{3}{l|}{\multirow{2}{*}{FPS}} \\ \cline{2-10}
+                       & \multicolumn{3}{l|}{Frame} & \multicolumn{3}{l|}{RPC} & \multicolumn{3}{l|}{Simulation} & \multicolumn{3}{l|}{}                     \\ \cline{2-13} 
+                       & $\mu$     & Max     & Min     & $\mu$     & Max    & Min    & $\mu$       & Max       & Min      & $\mu$          & Max          & Min          \\ \hline
+A                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.11       & 0.13     & 0.10    & 60            & 61          & 55          \\
+B                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.35       & 2.93     & 0.08    & 60            & 61          & 56          \\
+C                      & 17       & 17     & 16     & 17       & 17    & 16    & 0.45       & 0.90     & 0.23    & 60            & 61          & 59          \\
+D                      & 17       & 21     & 16     & 17       & 21    & 16    & 0.67       & 1.80     & 0.20    & 59            & 61          & 48          \\
+E                      & 21       & 23     & 17     & 21       & 24    & 17    & 2.46       & 5.73     & 1.08    & 49            & 58          & 44          \\
+F                      & 39       & 45     & 17     & 38       & 43    & 17    & 10.80      & 14.56    & 0.11    & 25            & 60          & 22          \\
+G                      & 72       & 91     & 34     & 73       & 91    & 34    & 23.73      & 41.08    & 0.91    & 14            & 29          & 11         
 \end{tabular}
-\caption{Bullet physics performance using NaClAM implementation}
+        \caption{Using Native Calls}
+    \end{subtable}
+    ~
+    \begin{subtable}[h]{\textwidth}
+        \centering
+\begin{tabular}{l|lll|lll|lll|lll}
+\multirow{3}{*}{Scene} & \multicolumn{9}{l|}{Time / ms}                                                          & \multicolumn{3}{l|}{\multirow{2}{*}{FPS}} \\ \cline{2-10}
+                       & \multicolumn{3}{l|}{Frame} & \multicolumn{3}{l|}{RPC} & \multicolumn{3}{l|}{Simulation} & \multicolumn{3}{l|}{}                     \\ \cline{2-13} 
+                       & $\mu$     & Max     & Min     & $\mu$     & Max    & Min    & $\mu$       & Max       & Min      & $\mu$          & Max          & Min          \\ \hline
+A                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.11       & 0.13     & 0.10    & 60            & 61          & 55          \\
+B                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.35       & 2.93     & 0.08    & 60            & 61          & 56          \\
+C                      & 17       & 17     & 16     & 17       & 17    & 16    & 0.45       & 0.90     & 0.23    & 60            & 61          & 59          \\
+D                      & 17       & 21     & 16     & 17       & 21    & 16    & 0.67       & 1.80     & 0.20    & 59            & 61          & 48          \\
+E                      & 21       & 23     & 17     & 21       & 24    & 17    & 2.46       & 5.73     & 1.08    & 49            & 58          & 44          \\
+F                      & 39       & 45     & 17     & 38       & 43    & 17    & 10.80      & 14.56    & 0.11    & 25            & 60          & 22          \\
+G                      & 72       & 91     & 34     & 73       & 91    & 34    & 23.73      & 41.08    & 0.91    & 14            & 29          & 11         
+\end{tabular}
+        \caption{Using NaClAM}
+    \end{subtable}
+\caption{Time measurements for the bullet physics demo, using different implementations}
+\label{table:bullet_performance}
 \end{table}
 
-Notice how the simulation time is more or less the same for both implementation. This makes sense, since both implementations have more or less the same C++ implementation.
 
-We can also see that the main bottle neck to performance in this implementation is the simulation time, and not the RPC framework. This can be seen clearly from the graph in Figure \ref{fig:graph-2k-cubes-naclam}.
+Table \ref{table:bullet_performance} shows the results of the measurements taken during the simulation every second, over a duration of 20 seconds. Figure \ref{fig:bullet_screenshots} shows which scene corresponds to which capital letter (for example, scene `E' is referring to the simulation of 500 cylinders).
+
+Because the simulation is affected by time, the table shows the range of values taken for each measurement.
+
+We can see that scenes A, B, C, D, and E have roughly similar results for both implementations. Scenes F and G show some more interesting results. Figure \ref{} shows some plots showing how the simulation time and frame time change per second for scenes E, F and G using the Native Calls and NaClAM implementations.
 
 \begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{graph-2k-cubes-naclam.png} 
-    \caption{Graph showing contributing factors to the frame rate, when simulating 2000 cubes falling from the sky using NaClAM}
-    \label{fig:graph-2k-cubes-naclam}
+        \centering
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cylinder500_nc.pdf}
+                % \caption{Jenga 10}
+                \label{fig:screenshot_jenga_10}
+        \end{subfigure}%
+        ~ 
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cylinder500_naclam.pdf}
+                % \caption{Jenga 20}
+                \label{fig:screenshot_jenga_20}
+        \end{subfigure}
+        ~ 
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cube1000_nc.pdf}
+                % \caption{Random Shapes}
+                \label{fig:random_shapes}
+        \end{subfigure}
+        ~ 
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cube1000_naclam.pdf}
+                % \caption{250 Cubes}
+                \label{fig:cubes_250}
+        \end{subfigure}
+        ~ 
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cube2000_nc.pdf}
+                % \caption{500 Cylinders}
+                \label{fig:cylinders_500}
+        \end{subfigure}%
+        ~ 
+        \begin{subfigure}[b]{\textwidth}
+                \includegraphics[width=\textwidth]{bulletdata_cube2000_naclam.pdf}
+                % \caption{1000 Cubes}
+                \label{fig:cubes_1000}
+        \end{subfigure}
+        \caption{The bullet physics scenes used in the benchmark}\label{fig:bullet_screenshots}
 \end{figure}
+
 
 % subsubsection results_bullet_physics_performance (end)
 
@@ -103,16 +197,6 @@ The most likely reason for this is because of the data marshalling on the C++ Na
 % subsubsection bullet_physics_performanceanalysis (end)
 
 
-\subsubsection{Implementation} % (fold)
-\label{ssub:implementation_bullet_physics_performance}
-The actual implementation of the RPC library for the physics simulation is discussed in the qualitative evaluation section. Here we discuss how we measure and plot the data that we saw in the tables and graphs above.
-
-We measure three things - the frame rate, the simulation time, and the round trip time. To measure the frame rate, we simply add to a total of frames requested. A frame is requested by the browser automatically in order to achieve a frame rate of 60 frames per second. This is done using the \lstinline{window.requestAnimationFrame} API, which conveniently takes the computation time for rendering and processing the frame into account. This is why the frame rate drops when the round trip time and simulation time increases. We measure the total simulation time inside the C++ application by taking time stamps between and after the simulation step and calculating the difference. We send it back with the results every time we do the simulation. Finally, we calculate the round trip time by taking timestamps before and after the RPC call and taking a difference. We average all this data over a period of one second and send it to be plotted.
-
-The graph is plotted in real time in the browser, but we make sure not to use the same \lstinline{window} object - as this will impact JavaScript performance and give us skewed results. Instead, we send the data to be plotted in a different window - which in Chrome corresponds to a different process. HighCharts was chosen to quickly and easily create the realtime graph with very little configuration. The demo and performance graphs are available on GitHub.
-
-% subsubsection implementation_bullet_physics_performance (end)
-
 % subsection bullet_physics_performance (end)
 
 \subsection{Oniguruma Regular Expressions Performance} % (fold)
@@ -121,17 +205,35 @@ To get an insight of the performance of the oniguruma library for Native Client 
 
 \subsubsection{Results and comparison} % (fold)
 \label{ssub:onig_results_and_comparison}
-TODO
+Table \ref{table:onig_time_taken} shows the results of running the benchmark application using Native Calls RPC and node-oniguruma.
+
+\begin{table}[h]
+\begin{tabular}{l|l}
+\textbf{Method}                 & \textbf{Time Taken / s} \\ \hline
+Native Calls                    &                     \\
+node-oniguruma with web sockets &                     \\
+node-oniguruma (native)         &                    
+\end{tabular}
+\caption{A comparison of the time taken to find all matches of a regular expression using different implementations}
+\label{table:onig_time_taken}
+\end{table}
+
 % subsubsection onig_results_and_comparison (end)
 
 \subsubsection{Analysis} % (fold)
 \label{ssub:onig_analysis}
-TODO
+We can see that the node-oniguruma version performs much better. This is due to a number of reasons:
+\begin{itemize}
+  \item The node-oniguruma implementation is \emph{native}, in the sense that it uses JavaScript types directly. No marshalling nor transfer happens.
+  \item The node.js V8 engine usually performs better than V8 in Chrome, as it is optimised for server side performance.
+  \item The web socket implementation has a very simple runtime on both client and server sides. No error checking, type checking, etc. happens.
+  \item Strings are the slowest primitive types to marshal, send and de-marshal in Native Calls. See section \ref{sec:performance_evaluation} for details.
+\end{itemize}
 % subsubsection onig_analysis (end)
 
 \subsubsection{Implementation} % (fold)
 \label{ssub:onig_implementation}
-Again, the actual implementation of the library is discussed later on in the evaluation. In this section, we discuss how we measure the number of matches.
+Again, the actual implementation of the library is discussed later on in the evaluation. In this section, we discuss how we measure the time it took to find all matches.
 
 TODO.
 % subsubsection onig_implementation (end)
