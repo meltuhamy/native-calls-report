@@ -125,13 +125,13 @@ G                      & 72       & 91     & 34     & 73       & 91    & 34    &
 \multirow{3}{*}{Scene} & \multicolumn{9}{l|}{Time / ms}                                                          & \multicolumn{3}{l|}{\multirow{2}{*}{FPS}} \\ \cline{2-10}
                        & \multicolumn{3}{l|}{Frame} & \multicolumn{3}{l|}{RPC} & \multicolumn{3}{l|}{Simulation} & \multicolumn{3}{l|}{}                     \\ \cline{2-13} 
                        & $\mu$     & Max     & Min     & $\mu$     & Max    & Min    & $\mu$       & Max       & Min      & $\mu$          & Max          & Min          \\ \hline
-A                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.11       & 0.13     & 0.10    & 60            & 61          & 55          \\
-B                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.35       & 2.93     & 0.08    & 60            & 61          & 56          \\
-C                      & 17       & 17     & 16     & 17       & 17    & 16    & 0.45       & 0.90     & 0.23    & 60            & 61          & 59          \\
-D                      & 17       & 21     & 16     & 17       & 21    & 16    & 0.67       & 1.80     & 0.20    & 59            & 61          & 48          \\
-E                      & 21       & 23     & 17     & 21       & 24    & 17    & 2.46       & 5.73     & 1.08    & 49            & 58          & 44          \\
-F                      & 39       & 45     & 17     & 38       & 43    & 17    & 10.80      & 14.56    & 0.11    & 25            & 60          & 22          \\
-G                      & 72       & 91     & 34     & 73       & 91    & 34    & 23.73      & 41.08    & 0.91    & 14            & 29          & 11         
+A                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.13       & 0.14     & 0.12    & 60            & 61          & 55          \\
+B                      & 17       & 18     & 16     & 17       & 18    & 16    & 0.38       & 3.37     & 0.10    & 60            & 61          & 57          \\
+C                      & 17       & 17     & 16     & 17       & 20    & 16    & 0.60       & 0.93     & 0.27    & 60            & 61          & 59          \\
+D                      & 17       & 19     & 16     & 17       & 20    & 17    & 1.14       & 1.87     & 0.22    & 60            & 61          & 52          \\
+E                      & 17       & 18     & 16     & 17       & 26    & 16    & 2.64       & 5.82     & 0.97    & 60            & 61          & 55          \\
+F                      & 19       & 21     & 17     & 19       & 24    & 17    & 12.06      & 15.49    & 1.09    & 53            & 59          & 48          \\
+G                      & 35       & 40     & 17     & 35       & 42    & 18    & 30.77      & 37.93    & 8.86    & 29            & 58          & 25         
 \end{tabular}
         \caption{Using NaClAM}
     \end{subtable}
@@ -144,48 +144,58 @@ Table \ref{table:bullet_performance} shows the results of the measurements taken
 
 Because the simulation is affected by time, the table shows the range of values taken for each measurement.
 
-We can see that scenes A, B, C, D, and E have roughly similar results for both implementations. Scenes F and G show some more interesting results. Figure \ref{} shows some plots showing how the simulation time and frame time change per second for scenes E, F and G using the Native Calls and NaClAM implementations.
+We can see that scenes A, B, C, D, and E have roughly similar results for both implementations. Scenes F and G show some more interesting results. Figures \ref{fig:bullet_graph_cyl500}, \ref{fig:bullet_graph_cube1000}, and \ref{fig:bullet_graph_cube2000} show some plots showing how the simulation time and frame time change per second for scenes E, F and G respectively, using the Native Calls and NaClAM implementations.
 
 \begin{figure}
         \centering
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cylinder500_nc.pdf}
-                % \caption{Jenga 10}
-                \label{fig:screenshot_jenga_10}
+                % \caption{Using Native Calls}
+                \label{fig:bulletdata_cylinder500_nc}
         \end{subfigure}%
-        ~ 
+        \\
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cylinder500_naclam.pdf}
-                % \caption{Jenga 20}
-                \label{fig:screenshot_jenga_20}
+                % \caption{Using NaClAM}
+                \label{fig:bulletdata_cylinder500_naclam}
         \end{subfigure}
-        ~ 
+        \caption{The mean processing times per second over a period of 20 seconds, for Scene E: 500 cylinders. The two graphs show the results using the same scene but different implementations.}
+        \label{fig:bullet_graph_cyl500}
+\end{figure}
+
+\begin{figure}
+        \centering
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cube1000_nc.pdf}
                 % \caption{Random Shapes}
-                \label{fig:random_shapes}
+                % \label{fig:random_shapes}
         \end{subfigure}
-        ~ 
+        \\
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cube1000_naclam.pdf}
                 % \caption{250 Cubes}
-                \label{fig:cubes_250}
+                % \label{fig:cubes_250}
         \end{subfigure}
-        ~ 
+        \caption{The mean processing times per second over a period of 20 seconds, for Scene F: 1000 cubes.}
+        \label{fig:bullet_graph_cube1000}
+\end{figure}
+
+\begin{figure}
+        \centering
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cube2000_nc.pdf}
                 % \caption{500 Cylinders}
-                \label{fig:cylinders_500}
+                % \label{fig:cylinders_500}
         \end{subfigure}%
-        ~ 
+        \\
         \begin{subfigure}[b]{\textwidth}
                 \includegraphics[width=\textwidth]{bulletdata_cube2000_naclam.pdf}
                 % \caption{1000 Cubes}
-                \label{fig:cubes_1000}
+                % \label{fig:cubes_1000}
         \end{subfigure}
-        \caption{The bullet physics scenes used in the benchmark}\label{fig:bullet_screenshots}
+        \caption{The mean processing times per second over a period of 20 seconds, for Scene G: 2000 cubes.}
+        \label{fig:bullet_graph_cube2000}
 \end{figure}
-
 
 % subsubsection results_bullet_physics_performance (end)
 
@@ -193,7 +203,10 @@ We can see that scenes A, B, C, D, and E have roughly similar results for both i
 \label{ssub:bullet_physics_performanceanalysis}
 From the graphs and tables, we can obviously see how the performance impact of our framework gets higher and higher with more and more objects being sent. We can see how, for large scenes such as 2000 cubes, the Native Calls implementation performs almost two times worse than the NaClAM implementation. However, for smaller scenes, the two implementations have very similar performance.
 
-The most likely reason for this is because of the data marshalling on the C++ Native Calls RPC framework implementation. In our implementation, the data is processed in O(n) time in order to convert the received \lstinline{pp::VarArray} array of objects into a \lstinline{std::vector} of \lstinline{struct}s. In section \ref{sec:performance_evaluation} (page \pageref{sec:performance_evaluation}), we find that converting WebIDL dictionaries is also quite slow, compared to converting an array of numbers. When we compare this to the NaClAM implementation, we can see that the NaClAM version has almost O(1) time, since the data is only being read and is shared between the module and JavaScript. This is explained in section \ref{sec:naclam} on page \pageref{sec:naclam}.
+From the graphs, we can see how the Native Calls framework contributes to the performance impact. For example, in Figure \ref{fig:bullet_graph_cube2000}, the large space between the physics simulation time line and the RPC round trip time line is an indication that the framework is doing most of the processing in the RPC call, not the simulation. When we compare this to the NaClAM version in the same figure, it is clear that most of the processing happens in the physics simulation.
+
+The most likely reason for these two observations is that the data marshalling on the C++ Native Calls RPC framework implementation negatively impacts the performance. In our implementation, the data is processed in O(n) time in order to convert the received \lstinline{pp::VarArray} array of objects into a \lstinline{std::vector} of \lstinline{struct}s. In section \ref{sec:performance_evaluation} (page \pageref{sec:performance_evaluation}), we find that converting WebIDL dictionaries is also quite slow, compared to converting an array of numbers. When we compare this to the NaClAM implementation, we can see that the NaClAM version has almost O(1) time, since the data is only being read and is shared between the module and JavaScript. This is explained in section \ref{sec:naclam} on page \pageref{sec:naclam}.
+
 % subsubsection bullet_physics_performanceanalysis (end)
 
 
