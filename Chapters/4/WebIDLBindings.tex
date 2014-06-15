@@ -3,19 +3,14 @@
 
 In order to automatically generate stubs for JavaScript and C++ that allows communication between the two languages, an independent language, WebIDL, is used to define types and interfaces which will be used by both JavaScript and C++.
 
-\begin{code}
-TODO: make this an actual diagram.
-C++   <->   JS
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{JavaScript-WebIDL.pdf} 
+    \caption{The WebIDL interface}
+    \label{fig:webidl_intreface}
+\end{figure}
 
-______________
-|    WebIDL   |
-|_____________|
-  |         |
-  v         v
- C++  <->  JS
-\end{code}
-
-The reason why this is needed is because JavaScript and C++ have entirely different type systems, and because the communication is two-way, we can't simply map a C++ type into a JavaScript type. Moreover, if the RPC framework were to be completely language independent, we would need a mapping between every languages type into a JavaScript type. Therefore, to generalise, WebIDL gives an intermediary type interface so that other languages can communicate with JavaScript. The WebIDL types and syntax is defined as a standard, and gives EcmaScript bindings. In other words, the conversion between WebIDL and JavaScript types is defined in the standard. It is then up to the developer of the other language to define a binding from that language to WebIDL.
+The reason why this is needed is because JavaScript and C++ have entirely different type systems, and because the communication is two-way, we can't simply map a C++ type into a JavaScript type. Moreover, if the RPC framework were to be completely language independent, we would need a mapping between every languages type into a JavaScript type. Therefore, to generalise, WebIDL gives an intermediary type interface so that other languages can communicate with JavaScript. The WebIDL types and syntax is defined as a standard, and gives EcmaScript bindings. In other words, the conversion between WebIDL and JavaScript types is defined in the standard. It is then up to the developer of the other language to define a binding from that language to WebIDL. This is illustrated in Figure \ref{fig:webidl_intreface}.
 
 In this section, we mention the C++ WebIDL bindings used in the Native Calls project, and the design decisions behind them.
 
