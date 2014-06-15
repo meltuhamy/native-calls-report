@@ -15,6 +15,7 @@ To test the framework and applications, we use the following machine specificati
   \item Google Chrome version: 35.0.1916.153 (Official Build 274914) 
   \item V8 version: 3.25.28.18
   \item Blink version: 537.36 (@175075)
+  \item PPAPI version: 34
 \end{itemize}
 
 We use Benchmark JS\footnote{\url{http://benchmarkjs.com/}} to easily and accurately measure the amount of time taken to run JavaScript code. Benchmark JS uses high-resolution timers (microsecond precision) and automatically runs the function we wish to test enough times so that it returns statistically significant results. 
@@ -36,7 +37,7 @@ For each second, the average time per frame is calculated. This is the inverse o
 
 The graph is plotted in real time in the browser, but we make sure not to use the same \lstinline{window} object - as this will impact JavaScript performance and give us skewed results. Instead, we send the data to be plotted in a different window - which in Chrome corresponds to a different process. HighCharts was chosen to quickly and easily create the realtime graph with very little configuration.
 
-The actual implementation of the RPC library for the physics simulation is discussed in the qualitative evaluation section.
+The actual implementation of the RPC library for the physics simulation is discussed in the qualitative evaluation section \ref{sub:implementation_bullet_evaluation} on page \pageref{sub:implementation_bullet_evaluation}.
 
 \begin{figure}
     \centering
@@ -216,6 +217,17 @@ The most likely reason for these two observations is that the data marshalling o
 \label{sub:oniguruma_regular_expressions_performance}
 To get an insight of the performance of the oniguruma library for Native Client using Native Calls, we shall count the number of regular expression matches. We compare this to running the engine in Node JS server natively, and then using WebSockets to get functionality in the browser.
 
+\subsubsection{Setup} % (fold)
+\label{ssub:onig_performance_setup}
+Again, the actual implementation of the library is discussed later on in the evaluation, in section \ref{sub:implementation_oniguruma_evaluation} on page \pageref{sub:implementation_oniguruma_evaluation}. In this section, we discuss how we measure the time it took to find all matches.
+
+For the benchmark, we searched a large code base. We took part of the jQuery implementation in JavaScript and stored it in a string. We then performed regular expression searches on that string. The search string was 3467 characters. We split it into lines. For each line, we found all instances of \lstinline{"this"}, \lstinline{"var"}, \lstinline{"selector"}, and \lstinline{"window"} using regular expressions. In total, there was 237 matches, and each implementation gave the correct output. However, we measured the amount of time it took to find all these matches.
+
+For the browser implementations (Native Calls and web sockets), we measure it using BenchmarkJS, to get an accurate running time, and a relative error margin. Using BenchmarkJS, we measured the time it took from initiating a request to receiving a response. BenchmarkJS performed the tests hundreds of times to get an accurate running time.
+
+For the server implementation (using node.js natively on the server), we simply timed and performed all the searches 1000 times and got the mean of the running time.
+% subsubsection onig_performance_setup (end)
+
 \subsubsection{Results and comparison} % (fold)
 \label{ssub:onig_results_and_comparison}
 Table \ref{table:onig_time_taken} shows the results of running the benchmark application using Native Calls RPC and node-oniguruma.
@@ -223,9 +235,9 @@ Table \ref{table:onig_time_taken} shows the results of running the benchmark app
 \begin{table}[h]
 \begin{tabular}{l|l}
 \textbf{Method}                 & \textbf{Time Taken / s} \\ \hline
-Native Calls                    &                     \\
-node-oniguruma with web sockets &                     \\
-node-oniguruma (native)         &                    
+Native Calls                    &  0.709 $\pm$0.47\%  \\
+node-oniguruma with web sockets &  0.375 $\pm$0.32\%  \\
+node-oniguruma (native)         &  0.045                  
 \end{tabular}
 \caption{A comparison of the time taken to find all matches of a regular expression using different implementations}
 \label{table:onig_time_taken}
@@ -244,12 +256,6 @@ We can see that the node-oniguruma version performs much better. This is due to 
 \end{itemize}
 % subsubsection onig_analysis (end)
 
-\subsubsection{Implementation} % (fold)
-\label{ssub:onig_implementation}
-Again, the actual implementation of the library is discussed later on in the evaluation. In this section, we discuss how we measure the time it took to find all matches.
-
-TODO.
-% subsubsection onig_implementation (end)
 
 % subsection oniguruma_regular_expressions_performance (end)
 % section application_performance_evaluation (end)
@@ -357,13 +363,9 @@ Tables \ref{table:roundtrip_array} and \ref{table:roundtrip_single_param} show t
 
 \subsection{C++ Library Time}\label{c-library-time}
 
-We measure the number of microseconds taken to handle a RPC call. This is
-the time it takes to detect it is an RPC call, extract parameters,
-convert them, find the method, call it, pack the result, and post the
-message back to JS.
+We measure the number of microseconds taken to handle a RPC call. This is the time it takes to detect it is an RPC call, extract parameters, convert them, find the method, call it, pack the result, and post the message back to JS.
 
-The results are measured and averaged for the same runs that were
-performed above. Tables \ref{table:cpp_lib_time_single_param} and \ref{table:cpp_lib_time_arrays} show the results, and Figure \ref{fig:arraylength-time-cpp-plot} shows a visualisation of the data.
+The results are measured and averaged for the same runs that were performed above. Tables \ref{table:cpp_lib_time_single_param} and \ref{table:cpp_lib_time_arrays} show the results, and Figure \ref{fig:arraylength-time-cpp-plot} shows a visualisation of the data.
 
 
 \begin{table}[h]
@@ -400,27 +402,16 @@ performed above. Tables \ref{table:cpp_lib_time_single_param} and \ref{table:cpp
 
 \subsection{JS Library performance}\label{js-library-performance}
 
-The JS library performance \textbf{without} validation has also been
-measured, however its performance impact is negligible. The slowest
-benchmark was found to take approx 3 microseconds (269,253 ops/sec
-$\pm$  1.90\%).
+The JS library performance \textbf{without} client-side type validation has also been measured, however its performance impact is negligible. The slowest benchmark was found to take approx 3 microseconds (269,253 ops/sec $\pm$  1.90\%).
 
 \subsection{Analysis}\label{analysis}
 
-From the data, we can see that for small types, the most contributing
-factor to performance is the browser (e.g.~event system, etc.) and PPAPI
-libraries (how PPAPI implements postMessage). For example, sending a
-single long type takes 2392.34 microseconds (.002 seconds), but our
-library only spends 105.5 microseconds processing the call (less than
-5\% of the time).
+From the data, we can see that for small types, the most contributing factor to performance is the browser (e.g.~event system, etc.) and PPAPI libraries (how PPAPI implements postMessage). For example, sending a single long type takes 2392.34 microseconds (.002 seconds), but our library only spends 105.5 microseconds processing the call (less than 5\% of the time).
 
-For large and complicated data, the impact of using the library becomes
-higher and higher. For example, sending 45000 nested objects (which are
-actually quite simple) has a total round-trip time of 6.67s, and a whole
-3.24 seconds of this is spent in our library (i.e.~half the time).
+For large and complicated data, the impact of using the library becomes higher and higher. For example, sending 45000 nested objects (which are actually quite simple) has a total round-trip time of 6.67s, and a whole 3.24 seconds of this is spent in our library (i.e.~half the time).
 
 The most likely reason for this is that the C++ library takes O(n) time to process the data in order to marshal it, by converting it from a \lstinline{pp::VarArray} into a \lstinline{std::vector}.
 
-TODO: Reasons why DOMString and dictionaries take longer than other types?
+We also notice that the DOMString and Dictionary types are the slowest to marshal and de-marshal. One reason for this could be that number types have a standard representation so perhaps the PPAPI was able to improve how they are transferred, whilst the string types and dictionary types would need marshalling even by the PPAPI. One obvious reason for why the dictionary types take longer to marshal is that they contain multiple types, each type is individually marshalled. So sending a dictionary with multiple keys and values is almost equivalent to sending multiple values separately.
 
 % section performance_evaluation (end)

@@ -2,33 +2,288 @@
 \label{sec:usability_evaluation}
 To get some insight as to how usable and useful the library and generator is, we analyse the number of lines the developer would need to write to build the same application. We take a look at two different applications: a bullet physics simulation which uses the C++ module to calculate simulation steps, and a regular expression library which uses a native module to do execute regular expressions. The table below shows how many lines the developer had to write to achieve the same program.
 
+\subsection{Implementation: Bullet} % (fold)
+\label{sub:implementation_bullet_evaluation}
+We use the IDL shown in Listing \ref{code_bullet_idl} as our interface. This allows us to send normal JavaScript objects to the C++ implementation, and in C++, the dictionaries are automatically marshalled as structs.
 
-\subsection{Bullet} % (fold)
+The rest of the implementation is taken from the original implementation. This is basically a static object which holds all the information about the scene, allows loading a scene, and calculates simulation steps, all using the Bullet Physics library.
+% subsection implementation_bullet_evaluation (end)
+
+\subsection{Implementation: Oniguruma} % (fold)
+\label{sub:implementation_oniguruma_evaluation}
+We use the IDL shown in Listing \ref{code_ong_idl}. Again, the rest of the implementation is taken from the node-oniguruma original project. There is a critical difference though, which is to do with the object-oriented nature of the regular expressions. To implement this, we have a static map of Scanner ids to C++ references to Scanner objects. RPC requests call the C++ class methods, using the id to to get the actual instance. An example of how this works is shown in the C++ Listing \ref{code_rpc_oop_cpp}. 
+% subsection implementation_oniguruma_evaluation (end)
+
+\lstset{language=C,caption={WebIDL for Bullet},label=code_bullet_idl}
+\begin{code}
+dictionary XYZ{
+	float x;
+	float y;
+	float z;
+};
+
+dictionary Cube{
+	DOMString name;
+	float wx;
+	float wy;
+	float wz;
+};
+
+dictionary Convex{
+	DOMString name;
+	sequence<XYZ> points;
+};
+
+// Sphere, Cylinder, and Body  defined similarly.
+
+dictionary Scene{
+	sequence<Cube> cubes;
+	sequence<Convex> convices;
+	sequence<Sphere> spheres;
+	sequence<Cylinder> cylinders;
+	sequence<Body> bodies;
+};
+
+dictionary SceneUpdate{
+	sequence<float> transform;
+	unsigned long long delta;	
+};
+
+interface BulletInterface {
+	double LoadScene(Scene scene);
+	SceneUpdate StepScene(XYZ rayTo, XYZ rayFrom);
+	boolean PickObject(double index, XYZ pos, XYZ cpos);
+	boolean DropObject();
+};
+\end{code}
+
+
+\lstset{language=C,caption={WebIDL for the Oniguruma implementation},label=code_ong_idl}
+\begin{code}
+dictionary CaptureIndex{
+	unsigned long start;
+	unsigned long end;
+	unsigned long length;
+	unsigned long index;
+};
+
+dictionary OnigMatch{
+	unsigned long index;
+	sequence<CaptureIndex> captureIndices;
+};
+
+interface Scanner{
+	unsigned long newScanner(sequence<DOMString> patterns);
+	OnigMatch findNextMatch(unsigned long scannerID, DOMString string,
+	                                     unsigned long startPosition);
+};
+\end{code}
+
+\lstset{language=C++,caption={Wrapping C++ instance methods with RPC functions, in the Oniguruma implementation},label=code_rpc_oop_cpp}
+\begin{code}
+uint32_t newScanner( std::vector<std::string> patterns){
+        return OnigScanner::newInstance(patterns);
+}
+
+OnigMatch findNextMatch( uint32_t scannerID,  std::string string,  
+                                              uint32_t startPosition){
+        OnigScanner* scanner = OnigScanner::getInstance(scannerID);
+        return scanner->findNextMatch(string, startPosition);
+}
+\end{code}
+\newpage
+\subsection{Results: Bullet} % (fold)
 \label{sub:evaluation_usability_bullet}
 \begin{table}[h]
 \begin{tabular}{llll}
-\#lines                  & Original & Library & Difference \\ \cline{2-4} 
-\multicolumn{1}{l|}{C++} &          &         &            \\
-\multicolumn{1}{l|}{JS}  &          &         &            \\
-\multicolumn{1}{l|}{IDL} & 0        &         &           
+\#lines                    & Original & Native Calls & Difference \\ \cline{2-4} 
+\multicolumn{1}{l|}{C++}   & 404      & 331          &  73        \\
+\multicolumn{1}{l|}{JS}    & 979      & 811          &  168       \\
+\multicolumn{1}{l|}{IDL}   & 0        & 54           &  -54       \\
+\multicolumn{1}{l|}{Total} & 1383     & 1196         &  187
 \end{tabular}
 \end{table}
 
-TODO: Describe what the code differences are and why they appeared. Describe overall process, and a conclusion.
+We can see a total of 187 lines were saved by using the Native Calls library and generators. In the C++ code, most of these differences occurred because the NaClAM version required the user to marshal and de-marshal the messages manually. For example, Listings \ref{code_pickobject_nc} and \ref{code_pickobject_naclam} shows how both implementations handle the \lstinline{PickObject} RPC call.
+
+\lstset{language=C++,caption={Native Calls Implementation of PickObject},label=code_pickobject_nc}
+\begin{code}
+bool PickObject(double index, XYZ pos, XYZ cpos) {
+  if (!bulletScene.dynamicsWorld) {
+    return false;
+  }
+  index++;
+  if (index < 0 || 
+       index >= bulletScene.dynamicsWorld->getNumCollisionObjects()) {
+    bulletScene.pickedObjectIndex = -1;
+    return false;
+  }
+  bulletScene.pickedObjectIndex = index;
+  bulletScene.addPickingConstraint(btVector3(cpos.x, cpos.y, cpos.z), 
+                                      btVector3(pos.x, pos.y, pos.z));
+  return true;
+}
+\end{code}
+
+
+\lstset{language=C++,caption={NaClAM implementation of PickObject},label=code_pickobject_naclam}
+\begin{code}
+void handlePickObject(const NaClAMMessage& message) {
+  if (!scene.dynamicsWorld) {
+    return;
+  }
+  const Json::Value& root = message.headerRoot;
+  const Json::Value& args = root["args"];
+  const Json::Value& objectTableIndex = args["index"];
+  const Json::Value& pos = args["pos"];
+  const Json::Value& cpos = args["cpos"];
+  float x = pos[0].asFloat();
+  float y = pos[1].asFloat();
+  float z = pos[2].asFloat();
+  float cx = cpos[0].asFloat();
+  float cy = cpos[1].asFloat();
+  float cz = cpos[2].asFloat();
+  int index = objectTableIndex.asInt();
+  index++;
+  if (index < 0 || 
+             index >= scene.dynamicsWorld->getNumCollisionObjects()) {
+    scene.pickedObjectIndex = -1;
+    return;
+  }
+  scene.pickedObjectIndex = index;
+  scene.addPickingConstraint(btVector3(cx, cy, cz), btVector3(x,y,z));
+  NaClAMPrintf("Picked \%d\n", scene.pickedObjectIndex);
+}
+\end{code}
+
+In the JavaScript code, most of the lines saved were type checking code and separate functions for the RPC calls and handlers. For example, the whole of \lstinline{world.js} (140 lines) is type checking code similar to Listing \ref{code_js_typechecking_naclam}. Notice how this doesn't even check the actual types, it just checks if the fields are defined. On the other hand, the generated Native Calls library produces full, structure recursive, convenient type checking without extra effort from the developer. Listing \ref{code_naclam_loadworld} shows an example of how separate handlers had to be written for the NaClAM implementation, while Listing \ref{code_nc_loadworld} shows how the same effect is achieved by the use of callbacks.
+
+\lstset{language=C,caption={NaClAM implementation's JavaScript type checking example},label=code_js_typechecking_naclam}
+\begin{code}
+function verifyCubeDescription(shape) {
+  if (shape['wx'] == undefined) {
+    return false;
+  }
+  if (shape['wy'] == undefined) {
+    return false;
+  }
+  if (shape['wz'] == undefined) {
+    return false;
+  }
+  return true;
+}
+\end{code}
+
+\lstset{language=C,caption={NaClAM implementation of requests and response handlers},label=code_naclam_loadworld}
+\begin{code}
+// somewhere in scene.js... 
+function loadWorld(worldDescription) {
+  clearWorld();
+  //... some JS implementation
+  NaClAMBulletLoadScene(worldDescription); // RPC request
+  lastSceneDescription = worldDescription;
+}
+
+// somewhere in NaClAMBullet.js...
+function NaClAMBulletInit() {
+  aM.addEventListener('sceneloaded', NaClAMBulletSceneLoadedHandler);
+  // other handlers
+}
+
+function NaClAMBulletLoadScene(sceneDescription) {
+  aM.sendMessage('loadscene', sceneDescription);
+}
+
+function NaClAMBulletSceneLoadedHandler(msg) {
+  console.log('Scene loaded.');
+  console.log('Scene object count = ' + msg.header.sceneobjectcount);
+}
+\end{code}
+
+\lstset{language=C,caption={Native Calls Implementation of requests and response handlers},label=code_nc_loadworld}
+\begin{code}
+function loadWorld(worldDescription, callback ) {
+  clearWorld();
+  //... some JS implementation
+  bullet.BulletInterface.LoadScene(rpcScene, function(result){
+    console.log("Scene loaded "+ result);
+    if(callback)callback();
+  });
+  lastSceneDescription = worldDescription;
+}
+\end{code}
+
+We can see that for both the JavaScript and C++ developer, using Native Calls saves a lot of time. The examples also show how the developer does not need to get used to another paradigm (i.e. using listeners, requests, and handlers) or library (i.e. JsonCpp). Instead, using Native Calls, the developer on both JavaScript and C++ can focus on the main logic of the actual native module!
+
 % subsection evaluation_usability_bullet (end)
 
-\subsection{Oniguruma} % (fold)
+\subsection{Results: Oniguruma} % (fold)
 \label{sub:evaluation_usability_oniguruma}
 \begin{table}[h]
 \begin{tabular}{llll}
-\#lines                  & Original & Library & Difference \\ \cline{2-4} 
-\multicolumn{1}{l|}{C++} &          &         &            \\
-\multicolumn{1}{l|}{JS}  &          &         &            \\
-\multicolumn{1}{l|}{IDL} & 0        &         &           
+\#lines                    & Original & Native Calls & Difference \\ \cline{2-4} 
+\multicolumn{1}{l|}{C++}   & 666      & 601          &  65        \\
+\multicolumn{1}{l|}{JS}    & 100      & 134          &  -34       \\
+\multicolumn{1}{l|}{IDL}   & 0        & 15           &  -15       \\
+\multicolumn{1}{l|}{Total} & 766      & 750          &  16
 \end{tabular}
 \end{table}
 
-TODO: Describe what the code differences are and why they appeared. Describe overall process, and a conclusion.
+Note: the original implementation used \emph{CoffeeScript}, we used the CoffeeScript compiler to get the equivalent JavaScript code. The generated JavaScript code is what is counted - and although it is computer generated, it maps directly to human-readable JavaScript that would have been written. We consider this fair when we compare the number of lines, as CoffeeScript introduces a lot of \emph{syntax sugar} which can greatly reduce the number of lines in JavaScript. The number of CoffeeScript lines in the original implementation is 51.
+
+We can see that only a few number of lines are saved in the Oniguruma implementation. This is because of the fact that Native Calls does not currently support object oriented RPC. The JavaScript developer lost quite a few lines because of this. We needed to create a class that makes the RPC calls and keeps references to objects in the C++ code. Listing \ref{code_onig_js_rpc_class} shows this. The \lstinline{_whenScannerReady} member function allows calling different RPC functions with a scannerID. Scanners are instantiated dynamically in the C++ using the \lstinline{newScanner} RPC call. All member functions then take in an extra parameter, the ID, which is used to find the instance in the C++ code.
+
+We compare this to the node-oniguruma implementation. Here, the C++ implementation extends JavaScript, so a C++ object corresponds directly to a JavaScript object. This is explained in the related work section \ref{sec:node_js_c_bindings} on page \pageref{sec:node_js_c_bindings}.
+
+\lstset{language=C,caption={Augmenting RPC: Wrapping RPC methods with a JS class},label=code_onig_js_rpc_class}
+\begin{lstlisting}
+function OnigScanner(sources){
+  this.ready = false;
+  this.scannerID = -1;
+  this.sources = sources;
+  this.scanner = scanner; // the RPC interface
+}
+
+OnigScanner.prototype._whenScannerReady = function(callback){
+  var thisRef = this;
+  if(this.ready){
+    // call straightaway.
+    if(typeof callback == "function"){
+      callback.apply(this);
+    }
+  } else {
+    // new scanner then call. does RPC request
+    this.scanner.newScanner(this.sources, function(scannerID){
+      thisRef.ready = true;
+      thisRef.scannerID = scannerID;
+      if(typeof callback == "function"){
+        callback.apply(thisRef);
+      }
+    });
+  }
+};
+
+OnigScanner.prototype.findNextMatch = function(string, startPosition, 
+                                                           callback) {
+  this._whenScannerReady(function(){
+    var thisRef = this;
+    // RPC with scannerID which is used to find the C++ instance
+    this.scanner.findNextMatch(this.scannerID, string, startPosition, 
+                                                      function(match){
+      if(match.captureIndices.length == 0){
+        match = null;
+      }
+      if(match != null){
+        match.scanner = thisRef;
+      }
+      if(typeof callback == "function"){
+        callback(match);
+      }
+    });
+  });
+};
+\end{lstlisting}
+
 % subsection evaluation_usability_oniguruma (end)
 
 % section usability_evaluation (end)
