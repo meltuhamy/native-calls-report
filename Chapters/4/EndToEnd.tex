@@ -7,8 +7,8 @@ We will create a complex number calculator using a C++ native module.
 I've written this tutorial in a way such that you can follow along and
 write the module yourself.
 
-\hyperdef{}{writing-our-interface-using-web-idl}{\subsection{Writing our
-interface using Web IDL}\label{writing-our-interface-using-web-idl}}
+\subsection{Writing our interface using Web
+IDL}\label{writing-our-interface-using-web-idl}
 
 Native Calls works by generating JS and C++ that handles communication
 between your native module and any JavaScript application. To do this,
@@ -74,8 +74,7 @@ Meanwhile, \texttt{sum\_all} takes a \texttt{sequence} type. Sequences
 get converted into C++ \texttt{std::vector}s, and on JavaScript, they're
 arrays.
 
-\hyperdef{}{generating-the-rpc-module}{\subsection{Generating the RPC
-module}\label{generating-the-rpc-module}}
+\subsection{Generating the RPC module}\label{generating-the-rpc-module}
 
 Now that we've defined the interface for the module, we now pass it to
 the generator. The generator lives in
@@ -185,8 +184,8 @@ As we expected, the dictionary was converted into an equivalent
 We can see that the generator created a header file for us to implement.
 The header file is entirely standard C++, using no extra libraries.
 
-\hyperdef{}{implementing-the-interface}{\subsection{Implementing the
-interface}\label{implementing-the-interface}}
+\subsection{Implementing the
+interface}\label{implementing-the-interface}
 
 We can now start writing our implementation. The generated
 \texttt{Makefile} requires us to write the implementation in a file
@@ -212,7 +211,8 @@ it if you've been following along with the tutorial.
 \KeywordTok{namespace} \NormalTok{Calculator\{}
 \NormalTok{complex add(complex x, complex y)\{}
   \NormalTok{complex cd;}
-  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) + std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) }
+                              \NormalTok{+ std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
   \NormalTok{cd.r = std_cd.real();}
   \NormalTok{cd.i = std_cd.imag();}
   \KeywordTok{return} \NormalTok{cd;}
@@ -220,7 +220,8 @@ it if you've been following along with the tutorial.
 
 \NormalTok{complex subtract(complex x, complex y)\{}
   \NormalTok{complex cd;}
-  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) - std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) }
+                              \NormalTok{- std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
   \NormalTok{cd.r = std_cd.real();}
   \NormalTok{cd.i = std_cd.imag();}
   \KeywordTok{return} \NormalTok{cd;}
@@ -228,7 +229,8 @@ it if you've been following along with the tutorial.
 
 \NormalTok{complex multiply(complex x, complex y)\{}
   \NormalTok{complex cd;}
-  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) * std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i)}
+                              \NormalTok{* std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
   \NormalTok{cd.r = std_cd.real();}
   \NormalTok{cd.i = std_cd.imag();}
   \KeywordTok{return} \NormalTok{cd;}
@@ -237,7 +239,8 @@ it if you've been following along with the tutorial.
 \NormalTok{complex sum_all(std::vector<complex> contents)\{}
   \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> currentSum(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{);}
   \NormalTok{complex sum;}
-  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); }
+                                         \NormalTok{it != contents.end(); ++it) \{}
     \NormalTok{complex current_cd = *it;}
       \NormalTok{currentSum += std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i);}
   \NormalTok{\}}
@@ -250,9 +253,10 @@ it if you've been following along with the tutorial.
 \NormalTok{complex multiply_all(std::vector<complex> contents)\{}
   \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> currentSum(}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{);}
   \NormalTok{complex sum;}
-  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); }
+                                         \NormalTok{it != contents.end(); ++it) \{}
     \NormalTok{complex current_cd = *it;}
-      \NormalTok{currentSum *= std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i);}
+    \NormalTok{currentSum *= std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i);}
   \NormalTok{\}}
   \NormalTok{sum.r = currentSum.real();}
   \NormalTok{sum.i = currentSum.imag();}
@@ -262,9 +266,10 @@ it if you've been following along with the tutorial.
 
 \NormalTok{std::vector<}\DataTypeTok{double}\NormalTok{> map_abs(std::vector<complex> contents)\{}
   \NormalTok{std::vector<}\DataTypeTok{double}\NormalTok{> r;}
-  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); }
+                                         \NormalTok{it != contents.end(); ++it) \{}
     \NormalTok{complex current_cd = *it;}
-      \NormalTok{r.push_back(abs(std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i)));}
+    \NormalTok{r.push_back(abs(std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i)));}
   \NormalTok{\}}
   \KeywordTok{return} \NormalTok{r;}
 \NormalTok{\}}
@@ -282,8 +287,7 @@ to doing.
 Now, all we have to do is compile and include the library in our html
 file.
 
-\hyperdef{}{building-our-rpc-module}{\subsection{Building our RPC
-Module}\label{building-our-rpc-module}}
+\subsection{Building our RPC Module}\label{building-our-rpc-module}
 
 For the most part, our generated \texttt{Makefile} will do everything
 for us. Depending on how complex our RPC functions are, we might need to
@@ -325,8 +329,8 @@ Interestingly, we can package the whole Complex folder into a zip or tar
 file and distribute it for any JavaScript developer to use on their
 website, without even needing to compile it.
 
-\hyperdef{}{using-our-library-from-javascript}{\subsection{Using our
-library from JavaScript}\label{using-our-library-from-javascript}}
+\subsection{Using our library from
+JavaScript}\label{using-our-library-from-javascript}
 
 We now have a binary native client application that we can include into
 our web application. To include it, we will use the Native Calls
@@ -355,7 +359,7 @@ that uses the library.
 \KeywordTok{<head}\OtherTok{ lang=}\StringTok{"en"}\KeywordTok{>}
     \KeywordTok{<meta}\OtherTok{ charset=}\StringTok{"UTF-8"}\KeywordTok{>}
     \KeywordTok{<title>}\NormalTok{Complex Number Calculator}\KeywordTok{</title>}
-    \KeywordTok{<script}\OtherTok{ type=}\StringTok{"text/javascript"}\OtherTok{ src=}\StringTok{"//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.11/require.min.js"}\KeywordTok{></script>}
+    \KeywordTok{<script}\OtherTok{ type=}\StringTok{"text/javascript"}\OtherTok{ src=}\StringTok{"require.min.js"}\KeywordTok{></script>}
     \KeywordTok{<script>}
 \ErrorTok{    require(['./Complex/ComplexRPC.js'], function (ComplexRPC) \{}
 \ErrorTok{        window.Complex = new ComplexRPC();}
@@ -397,11 +401,10 @@ folder, by simply running serve.
 Now, open chrome and navigate to \texttt{http://localhost:3000/}, then
 open the console to start using the library.
 
-\hyperdef{}{making-remote-procedure-calls-from-javascript}{\subsection{Making
-remote procedure calls from
-JavaScript}\label{making-remote-procedure-calls-from-javascript}}
+\subsection{Making remote procedure calls from
+JavaScript}\label{making-remote-procedure-calls-from-javascript}
 
- With the console open, we can try out some remote procedure calls.
+With the console open, we can try out some remote procedure calls.
 You'll notice that the functions we exposed using the idl file are
 available to us in the console window. The functions work as you would
 expect, but they are always completely \textbf{asynchronous} since
@@ -418,9 +421,18 @@ Complex.Calculator.add({r:10, i:10}, {r:5, i:-10}, function(result){
 We can see the data being transferred in the console:
 
 \begin{verbatim}
-[NaClModule:Complex] → {"jsonrpc":"2.0","method":"Calculator::add","id":3,"params":[{"r":10,"i":10},{"r":5,"i":-10}]}
+[NaClModule:Complex] →  {
+                          "jsonrpc":"2.0",
+                          "method":"Calculator::add",
+                          "id":3,
+                          "params":[{"r":10,"i":10},{"r":5,"i":-10}]
+                        }
 
-[NaClModule:Complex] ← {"id":3,"jsonrpc":"2.0","result":{"i":0,"r":15}}
+[NaClModule:Complex] ←  {
+                         "jsonrpc":"2.0",
+                         "id":3,
+                         "result":{"i":0,"r":15}
+                        }
 \end{verbatim}
 
 And finally the result being logged:
@@ -493,14 +505,13 @@ rejected the call.
 
 \begin{verbatim}
 var success = function(result){ console.log(result); };
-var error = function(error){ console.error("ERROR! "+JSON.stringify(error)); };
+var error = function(error){ console.error("ERROR! "+error.message); };
 Complex.Calculator.add({r:12,i:23},{r:3,i:"not a number"}, success, error);
 \end{verbatim}
 
 \begin{verbatim}
-ERROR! {"code":-32602,"message":"Invalid Params: Param 1 (y) has incorrect type. Expected complex"}
+ERROR! Invalid Params: Param 1 (y) has incorrect type. Expected complex
 \end{verbatim}
 
 Turning off JS Validation can increase performance, especially for
 applications that perform many requests per second.
-
