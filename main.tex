@@ -132,6 +132,17 @@
   morestring=[b]"
 }
 
+%QUOTE
+\usepackage{epigraph}
+
+% \epigraphsize{\small}% Default
+\setlength\epigraphwidth{8cm}
+\setlength\epigraphrule{0pt}
+\makeatletter
+
+\makeatother
+\usepackage{etoolbox}
+
 
 \begin{document}
 
@@ -267,7 +278,15 @@ TODO Thesis abstract here.
 
 \acknowledgements{\addtocontents{toc}{\vspace{1em}} % Add a gap in the Contents, for aesthetics
 
-TODO Acknowledgements
+I would like to thank my supervisor, Dr. Cristian Cadar, for his advice, suggestions, and feedback regarding the project and report. 
+
+I would also like to than Petr Hosek for his ongoing enthusiasm, ideas, and engaging discussions about the project throughout the year.
+
+Finally, I would like to thank my family and friends for their ongoing support throughout my degree.
+
+\vspace{1em}
+\epigraph{\emph{And say, ``My Lord, increase me in knowledge.''}}{\textup{Quran 20:114}}
+
 }
 \clearpage % Start a new page
 
