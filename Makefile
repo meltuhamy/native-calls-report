@@ -6,10 +6,7 @@ all: once
 $(LATEXWATCHER):
 	npm install
 
-appendix: 
-	@make -C Appendices > /dev/null
-
-once: $(LATEXWATCHER) appendix
+once: $(LATEXWATCHER)
 	@$(LATEXWATCHER) -c $(COMMANDS) -t main -b main --once
 
 watch: $(LATEXWATCHER)
