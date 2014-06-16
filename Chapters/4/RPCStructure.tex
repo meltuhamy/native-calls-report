@@ -70,9 +70,9 @@ However, much of the details of this can be `inferred' using the name of the mod
 var myModule = new NaClModule({"name": "MyModule"});
 \end{code}
 
-The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. The id attribute is the same as the name attribute. The name and the type are inferred using the config object. Listing \ref{} shows an example of a config object and the corresponding embed attributes.
+The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. The id attribute is the same as the name attribute. The name and the type are inferred using the config object. Listing \ref{code_naclconfig_example} shows an example of a config object and the corresponding embed attributes.
 
-\lstset{language=C,caption={},label=code_}
+\lstset{language=C,caption={Setting a NaClConfig object},label=code_naclconfig_example}
 \begin{code}
 // the NaClConfig object is a global object. 
 // If required keys aren't found here, they are looked up in a 
