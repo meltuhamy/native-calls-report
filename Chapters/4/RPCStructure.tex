@@ -9,7 +9,16 @@ The advantages of this approach is that each layer is independent of the other. 
 
 The other advantage to this approach is that because the layers are independent and each layer has a simple interface, each layer can easily be tested. For example, to test the implementation of the run time layer, we can easily mock the JSON RPC layer, since we know its public interface.
 
-In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. Each layer is described in detail below.
+In the end, we have four layers: the stub layer, runtime layer, JSON RPC layer and transport layer. 
+
+\begin{itemize}
+  \item Stub layer: This is responsible for parameter and result (de-)marshalling. Eventually, it calls methods in the runtime layer.
+  \item Runtime layer: This manages RPC requests and responses, matching responses with requests and calling the correct callbacks.
+  \item RPC Layer: This implements an RPC protocol such as JSON RPC.
+  \item Transport layer: This allows messages to be sent and received between the JavaScript and C++ runtimes.
+\end{itemize}
+
+Each layer is described in detail below.
 
 \begin{figure}
     \centering
