@@ -52,7 +52,7 @@ This section gives an overview of some of the different message formats that can
 
 	\item[Protocol Buffers] 
 	~\\
-	Google Protocol Buffers are ``a language-neutral, platform-neutral, extensible way of serializing structured data for use in communications protocols, data storage, and more", according to the developer guide\footnote{\label{googleprotobuff}\url{https://developers.google.com/protocol-buffers/docs/overview}}. They are used extensively within many Google products, including AppEngine\footnote{Google AppEngine is a Platform as a Service that allows developers to run their applications on the cloud}. 
+	Google Protocol Buffers are ``a language-neutral, platform-neutral, extensible way of serializing structured data for use in communications protocols, data storage, and more", according to the developer guide\cite{protobufdev}. They are used extensively within many Google products, including AppEngine\footnote{Google AppEngine is a Platform as a Service that allows developers to run their applications on the cloud}. 
 
 	Messages are defined in .proto files. Listing \ref{exampleproto} shows an example, adapted from the Developer Overview.
 	~\\
@@ -100,7 +100,7 @@ cout << "E-mail: " << person.email() << endl;
 	\end{code}
 
 
-	Many RPC implementations which use protocol buffers exist. Although Java, C++, and Python are the languages that are officially supported, people have created open source  implementations for other languages, including JavaScript\footnote{\url{https://github.com/dcodeIO/ProtoBuf.js}}.
+	Many RPC implementations which use protocol buffers exist. Although Java, C++, and Python are the languages that are officially supported, people have created open source  implementations for other languages, including JavaScript\cite{protobufjs}.
 \end{description}
 
 % section data_representation_and_transfer (end)
