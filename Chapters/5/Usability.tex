@@ -14,7 +14,7 @@ The rest of the implementation is taken from the original implementation. This i
 We use the IDL shown in Listing \ref{code_ong_idl}. Again, the rest of the implementation is taken from the node-oniguruma original project. There is a critical difference though, which is to do with the object-oriented nature of the regular expressions. To implement this, we have a static map of Scanner ids to C++ references to Scanner objects. RPC requests call the C++ class methods, using the id to to get the actual instance. An example of how this works is shown in the C++ Listing \ref{code_rpc_oop_cpp}. 
 % subsection implementation_oniguruma_evaluation (end)
 
-\lstset{language=C,caption={WebIDL for Bullet},label=code_bullet_idl}
+\lstset{language=WebIDL,caption={WebIDL for Bullet},label=code_bullet_idl}
 \begin{code}
 dictionary XYZ{
 	float x;
@@ -58,7 +58,7 @@ interface BulletInterface {
 \end{code}
 
 
-\lstset{language=C,caption={WebIDL for the Oniguruma implementation},label=code_ong_idl}
+\lstset{language=WebIDL,caption={WebIDL for the Oniguruma implementation},label=code_ong_idl}
 \begin{code}
 dictionary CaptureIndex{
 	unsigned long start;
@@ -95,16 +95,19 @@ OnigMatch findNextMatch( uint32_t scannerID,  std::string string,
 \subsection{Results: Bullet} % (fold)
 \label{sub:evaluation_usability_bullet}
 \begin{table}[h]
+\centering
 \begin{tabular}{llll}
-\#lines                    & Original & Native Calls & Difference \\ \cline{2-4} 
+Line count                 & Original & Native Calls & Difference \\ \cline{2-4} 
 \multicolumn{1}{l|}{C++}   & 404      & 331          &  73        \\
 \multicolumn{1}{l|}{JS}    & 979      & 811          &  168       \\
 \multicolumn{1}{l|}{IDL}   & 0        & 54           &  -54       \\
 \multicolumn{1}{l|}{Total} & 1383     & 1196         &  187
 \end{tabular}
+\caption{The number of lines of code needed to write the Bullet demo}
+\label{table:eval_usability_results_bullet}
 \end{table}
 
-We can see a total of 187 lines were saved by using the Native Calls library and generators. In the C++ code, most of these differences occurred because the NaClAM version required the user to marshal and de-marshal the messages manually. For example, Listings \ref{code_pickobject_nc} and \ref{code_pickobject_naclam} shows how both implementations handle the \lstinline{PickObject} RPC call.
+Table \ref{table:eval_usability_results_bullet} shows the number of lines that the developer would have to write to implement the bullet physics simulation, based on the original implementation. We can see a total of 187 lines were saved by using the Native Calls library and generators. In the C++ code, most of these differences occurred because the NaClAM version required the user to marshal and de-marshal the messages manually. For example, Listings \ref{code_pickobject_nc} and \ref{code_pickobject_naclam} shows how both implementations handle the \lstinline{PickObject} RPC call.
 
 \lstset{language=C++,caption={Native Calls Implementation of PickObject},label=code_pickobject_nc}
 \begin{code}
@@ -158,7 +161,7 @@ void handlePickObject(const NaClAMMessage& message) {
 
 In the JavaScript code, most of the lines saved were type checking code and separate functions for the RPC calls and handlers. For example, the whole of \lstinline{world.js} (140 lines) is type checking code similar to Listing \ref{code_js_typechecking_naclam}. Notice how this doesn't even check the actual types, it just checks if the fields are defined. On the other hand, the generated Native Calls library produces full, structure recursive, convenient type checking without extra effort from the developer. Listing \ref{code_naclam_loadworld} shows an example of how separate handlers had to be written for the NaClAM implementation, while Listing \ref{code_nc_loadworld} shows how the same effect is achieved by the use of callbacks.
 
-\lstset{language=C,caption={NaClAM implementation's JavaScript type checking example},label=code_js_typechecking_naclam}
+\lstset{language=JavaScript,caption={NaClAM implementation's JavaScript type checking example},label=code_js_typechecking_naclam}
 \begin{code}
 function verifyCubeDescription(shape) {
   if (shape['wx'] == undefined) {
@@ -174,7 +177,7 @@ function verifyCubeDescription(shape) {
 }
 \end{code}
 
-\lstset{language=C,caption={NaClAM implementation of requests and response handlers},label=code_naclam_loadworld}
+\lstset{language=JavaScript,caption={NaClAM implementation of requests and response handlers},label=code_naclam_loadworld}
 \begin{code}
 // somewhere in scene.js... 
 function loadWorld(worldDescription) {
@@ -200,7 +203,7 @@ function NaClAMBulletSceneLoadedHandler(msg) {
 }
 \end{code}
 
-\lstset{language=C,caption={Native Calls Implementation of requests and response handlers},label=code_nc_loadworld}
+\lstset{language=JavaScript,caption={Native Calls Implementation of requests and response handlers},label=code_nc_loadworld}
 \begin{code}
 function loadWorld(worldDescription, callback ) {
   clearWorld();
@@ -220,22 +223,23 @@ We can see that for both the JavaScript and C++ developer, using Native Calls sa
 \subsection{Results: Oniguruma} % (fold)
 \label{sub:evaluation_usability_oniguruma}
 \begin{table}[h]
+\centering
 \begin{tabular}{llll}
-\#lines                    & Original & Native Calls & Difference \\ \cline{2-4} 
+Line count                 & Original & Native Calls & Difference \\ \cline{2-4} 
 \multicolumn{1}{l|}{C++}   & 666      & 601          &  65        \\
 \multicolumn{1}{l|}{JS}    & 100      & 134          &  -34       \\
 \multicolumn{1}{l|}{IDL}   & 0        & 15           &  -15       \\
 \multicolumn{1}{l|}{Total} & 766      & 750          &  16
 \end{tabular}
+\caption{The number of lines of code needed to write the Oniguruma library}
+\label{table:eval_usability_results_onig}
 \end{table}
 
-Note: the original implementation used \emph{CoffeeScript}, we used the CoffeeScript compiler to get the equivalent JavaScript code. The generated JavaScript code is what is counted - and although it is computer generated, it maps directly to human-readable JavaScript that would have been written. We consider this fair when we compare the number of lines, as CoffeeScript introduces a lot of \emph{syntax sugar} which can greatly reduce the number of lines in JavaScript. The number of CoffeeScript lines in the original implementation is 51.
+Table \ref{table:eval_usability_results_onig} shows the number of lines that the developer would have to write to implement the Oniguruma library, based on the original implementation. Note: the original implementation used \emph{CoffeeScript}, we used the CoffeeScript compiler to get the equivalent JavaScript code. The generated JavaScript code is what is counted - and although it is computer generated, it maps directly to human-readable JavaScript that would have been written. We consider this fair when we compare the number of lines, as CoffeeScript introduces a lot of \emph{syntax sugar} which can greatly reduce the number of lines in JavaScript. The number of CoffeeScript lines in the original implementation is 51.
 
-We can see that only a few number of lines are saved in the Oniguruma implementation. This is because of the fact that Native Calls does not currently support object oriented RPC. The JavaScript developer lost quite a few lines because of this. We needed to create a class that makes the RPC calls and keeps references to objects in the C++ code. Listing \ref{code_onig_js_rpc_class} shows this. The \lstinline{_whenScannerReady} member function allows calling different RPC functions with a scannerID. Scanners are instantiated dynamically in the C++ using the \lstinline{newScanner} RPC call. All member functions then take in an extra parameter, the ID, which is used to find the instance in the C++ code.
+We can see that only a few number of lines are saved in the Oniguruma implementation. This is because of the fact that Native Calls does not currently support object oriented RPC. The JavaScript developer lost quite a few lines because of this. We needed to create a class that makes the RPC calls and keeps references to objects in the C++ code. Listing \ref{code_onig_js_rpc_class} shows this. The \lstinline{_whenScannerReady} member function allows calling different RPC functions with a scannerID. Scanners are instantiated dynamically in the C++ using the \lstinline{newScanner} RPC call. All member functions then take in an extra parameter, the ID, which is used to find the instance in the C++ code. We compare this to the node-oniguruma implementation. Here, the C++ implementation extends JavaScript, so a C++ object corresponds directly to a JavaScript object. This is explained in the related work section \ref{sec:node_js_c_bindings} on page \pageref{sec:node_js_c_bindings}.
 
-We compare this to the node-oniguruma implementation. Here, the C++ implementation extends JavaScript, so a C++ object corresponds directly to a JavaScript object. This is explained in the related work section \ref{sec:node_js_c_bindings} on page \pageref{sec:node_js_c_bindings}.
-
-\lstset{language=C,caption={Augmenting RPC: Wrapping RPC methods with a JS class},label=code_onig_js_rpc_class}
+\lstset{language=JavaScript,caption={Augmenting RPC: Wrapping RPC methods with a JS class},label=code_onig_js_rpc_class}
 \begin{lstlisting}
 function OnigScanner(sources){
   this.ready = false;

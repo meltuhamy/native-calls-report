@@ -18,7 +18,7 @@ Remote procedures in ONC RPC are identified by a program number, a version numbe
 \label{sec:xdrsyntax}
 In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{sub:oncrpc_intro}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
 
-\lstset{language=c,caption={An example RPC definition for a key-pair generator function},label=samplerpc}
+\lstset{language=C,caption={An example RPC definition for a key-pair generator function},label=samplerpc}
 \begin{code}
 /* File: keypairgen.x */
 struct key_pair_t
@@ -49,7 +49,7 @@ We can use the RPCGen compiler to then create client and server stubs. Passing t
 Now we need to write the actual implementation of the RPC procedure we wish to call remotely, namely \lstinline+generate_keypair+. This will include the generated header file and follow the specification we defined, as shown in listing \ref{samplerpcImp}. \\
 
 
-\lstset{language=c,caption={An example server-side implementation of the procedure defined in \ref{samplerpc}},label=samplerpcImp}
+\lstset{language=C,caption={An example server-side implementation of the procedure defined in \ref{samplerpc}},label=samplerpcImp}
 \begin{code}
 #include "keypairgen.h"
 
@@ -141,7 +141,7 @@ XML-RPC supports simple types like integer, double, string, boolean values. It a
 XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a simple and light-weight human-readable message format. Its advantages over XML is that it is a lot lighter and simpler. However, XML can be extended to support complex user-defined types using XML-Schemas, which is not possible directly using JSON. JSON-RPC is also a protocol and message format, for which different implementations exist. For example, we can easily represent the RPC call and response shown in Listings \ref{examplexmlcall} and \ref{examplexmlresponse} using the JSON-RPC protocol format as shown in Listing \ref{examplejsonrpc}.
 \\
 
-\lstset{language=c,caption={An example JSON-RPC request and response},label=examplejsonrpc}
+\lstset{language=JavaScript,caption={An example JSON-RPC request and response},label=examplejsonrpc}
 \begin{code}
 // JSON-RPC request:
 { 

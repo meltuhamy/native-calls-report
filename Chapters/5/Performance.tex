@@ -227,6 +227,7 @@ For the server implementation (using node.js natively on the server), we simply 
 Table \ref{table:onig_time_taken} shows the results of running the benchmark application using Native Calls RPC and node-oniguruma.
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|l}
 \textbf{Method}                 & \textbf{Time Taken / s} \\ \hline
 Native Calls                    &  0.709 $\pm$0.47\%  \\
@@ -306,6 +307,7 @@ One round trip corresponds to a full remote procedure call, starting from JavaSc
 
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|lll}
 \textbf{Type}       & \textbf{Mean RT/s} & \textbf{Uncertainty} & \textbf{Number of runs} \\ \hline
 \textbf{long}       & 418                & $\pm$1.79\%              & 56                      \\
@@ -320,17 +322,18 @@ One round trip corresponds to a full remote procedure call, starting from JavaSc
 
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|lllll}
 \multirow{2}{*}{\textbf{Array Length}} & \multicolumn{5}{l}{\textbf{Round trips per second}}                                        \\
                                        & \textbf{long} & \textbf{double} & \textbf{DOMString} & \textbf{dict} & \textbf{nestedDict} \\ \hline
-\textbf{10}                            & 403 $\pm$2.20\%   & 403 $\pm$2.19\%     & 378 $\pm$1.48\%        & 317 $\pm$1.76\%   & 244 $\pm$1.81\%         \\
-\textbf{45}                            & 379 $\pm$1.99\%   & 384 $\pm$2.01\%     & 309 $\pm$1.22\%        & 182 $\pm$3.03\%   & 112 $\pm$1.15\%         \\
-\textbf{100}                           & 354 $\pm$2.01\%   & 347 $\pm$1.62\%     & 234 $\pm$2.59\%        & 110 $\pm$1.36\%   & 60.07 $\pm$1.24\%       \\
-\textbf{450}                           & 237 $\pm$1.18\%   & 235 $\pm$2.07\%     & 102 $\pm$1.48\%        & 32.82 $\pm$1.10\% & 15.83 $\pm$0.96\%       \\
-\textbf{1000}                          & 163 $\pm$1.54\%   & 160 $\pm$1.04\%     & 55.41 $\pm$1.89\%      & 15.39 $\pm$1.06\% & 7.43 $\pm$1.29\%        \\
-\textbf{4500}                          & 49.39 $\pm$1.67\% & 48.93 $\pm$1.41\%   & 14.60 $\pm$0.75\%      & 3.62 $\pm$1.26\%  & 1.68 $\pm$1.05\%        \\
-\textbf{10000}                         & 24.68 $\pm$0.90\% & 24.50 $\pm$1.00\%   & 6.62 $\pm$1.85\%       & 1.62 $\pm$1.68\%  & 0.75 $\pm$1.81\%        \\
-\textbf{45000}                         & 5.99 $\pm$1.37\%  & 5.98 $\pm$0.92\%    & 1.28 $\pm$2.92\%       & 0.33 $\pm$2.48\%  & 0.15 $\pm$2.46\%       
+\textbf{10}                            & 403               & 403                 & 378                    & 317               & 244                     \\
+\textbf{45}                            & 379               & 384                 & 309                    & 182               & 112                     \\
+\textbf{100}                           & 354               & 347                 & 234                    & 110               & 60.07                   \\
+\textbf{450}                           & 237               & 235                 & 102                    & 32.82             & 15.83                   \\
+\textbf{1000}                          & 163               & 160                 & 55.41                  & 15.39             & 7.43                    \\
+\textbf{4500}                          & 49.39             & 48.93               & 14.60                  & 3.62              & 1.68                    \\
+\textbf{10000}                         & 24.68             & 24.50               & 6.62                   & 1.62              & 0.75                    \\
+\textbf{45000}                         & 5.99              & 5.98                & 1.28                   & 0.33              & 0.15                   
 \end{tabular}
 \caption{Round trip performance for arrays of different lengths and types}
 \label{table:roundtrip_array}
@@ -363,13 +366,14 @@ The results are measured and averaged for the same runs that were performed abov
 
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|ll}
 \textbf{Type}       & \textbf{Mean lib time/$\mu$s} & \textbf{Uncertainty (1 sd)} \\ \hline
-\textbf{long}       & 105.50                    & 17.88                       \\
-\textbf{double}     & 104.12                    & 17.34                       \\
-\textbf{DOMString}  & 103.98                    & 17.55                       \\
-\textbf{dict}       & 136.15                    & 23.35                       \\
-\textbf{nestedDict} & 179.71                    & 28.32                      
+\textbf{long}       & 106                       & 18                          \\
+\textbf{double}     & 104                       & 17                          \\
+\textbf{DOMString}  & 104                       & 18                          \\
+\textbf{dict}       & 136                       & 23                          \\
+\textbf{nestedDict} & 180                       & 28                         
 \end{tabular}
 \caption{Mean C++ library time for sending and receiving single parameters of different types}
 \label{table:cpp_lib_time_single_param}
@@ -377,18 +381,19 @@ The results are measured and averaged for the same runs that were performed abov
 
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|lllll}
 \multirow{2}{*}{\textbf{Array Length}} & \multicolumn{5}{l}{\textbf{Time / $\mu$s}}                                                                             \\
                                        & \textbf{long} & \textbf{double} & \textbf{DOMSTring} & \textbf{dict} & \textbf{nestedDict} \\ \hline
-\textbf{10}                            & 125.40             & 125.91               & 197.42                  & 453.41             & 861.02                   \\
-\textbf{45}                            & 168.64             & 163.34               & 484.03                  & 1512.79            & 3272.52                  \\
-\textbf{100}                           & 242.70             & 245.74               & 906.05                  & 3445.17            & 7009.90                  \\
-\textbf{450}                           & 705.10             & 703.79               & 3734.62                 & 13628.62           & 28198.18                 \\
-\textbf{1000}                          & 1275.59            & 1354.86              & 7606.78                 & 29582.43           & 63493.50                 \\
-\textbf{4500}                          & 5547.10            & 5564.47              & 30485.21                & 132121.82          & 292827.69                \\
-\textbf{10000}                         & 11282.88           & 11376.26             & 68443.89                & 301437.50          & 632956.25                \\
-\textbf{45000}                         & 50532.42           & 50843.33             & 359133.64               & 1418791.67         & 3242286.00               \\
-\textbf{100000}                        & 104087.22          & 114020.00            & 799742.86               & 3319250.00         & 7347985.00              
+\textbf{10}                            & 125                & 126                  & 197                     & 453                & 861                      \\
+\textbf{45}                            & 169                & 163                  & 484                     & 1513               & 3273                     \\
+\textbf{100}                           & 243                & 246                  & 906                     & 3445               & 7010                     \\
+\textbf{450}                           & 705                & 704                  & 3735                    & 13629              & 28198                    \\
+\textbf{1000}                          & 1276               & 1355                 & 7607                    & 29582              & 63494                    \\
+\textbf{4500}                          & 5548               & 5564                 & 30485                   & 132122             & 292828                   \\
+\textbf{10000}                         & 11283              & 11376                & 68444                   & 301438             & 632956                   \\
+\textbf{45000}                         & 50532              & 50843                & 359134                  & 1418792            & 3242286                  \\
+\textbf{100000}                        & 104087             & 114020               & 799743                  & 3319250            & 7347985                 
 \end{tabular}
 \caption{Mean C++ library time for sending and receiving arrays of different lengths and types}
 \label{table:cpp_lib_time_arrays}

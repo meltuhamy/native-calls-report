@@ -75,7 +75,7 @@ To represent string types, the \lstinline{DOMString} WebIDL type is converted to
 \label{sub:dictionary_types}
 The WebIDL standard defines the binding of a WebIDL dictionary to be a JavaScript Object with the keys being the identifier names of each dictionary member, and values being of the member's type. For example, Listing \ref{code_webidl_dictionary_example} shows an example of a dictionary definition in WebIDL and the corresponding JavaScript object according to the specification.
 
-\lstset{language=C,caption={A WebIDL dictionary and its JavaScript binding},label=code_webidl_dictionary_example}
+\lstset{language=JavaScript,caption={A WebIDL dictionary and its JavaScript binding},label=code_webidl_dictionary_example}
 \begin{code}
 // WebIDL
 dictionary myObject {
@@ -95,7 +95,7 @@ When a JavaScript object (and therefore a WebIDL dictionary) is sent to the NaCl
 We now consider how we can represent dictionaries in C++. The obvious approach is to represent a dictionary as a C \lstinline{struct}. The fields of the struct will have corresponding names and types as defined in the dictionary. For example, the struct shown in Listing \ref{code_webidl_struct_example} corresponds to the dictionary shown earlier in Listing \ref{code_webidl_dictionary_example}.
 
 
-\lstset{language=C,caption={A C struct corresponding to the dictionary definition in Listing \ref{code_webidl_dictionary_example}},label=code_webidl_struct_example}
+\lstset{language=C++,caption={A C struct corresponding to the dictionary definition in Listing \ref{code_webidl_dictionary_example}},label=code_webidl_struct_example}
 \begin{code}
 struct myObject {
   double id;
@@ -229,7 +229,7 @@ To do this, we use \emph{JSON schemas}. JSON schemas are a declarative notation 
 
 Now that we have the notation and the validator, all we need to do is use it in our library. We created a TypeChecker class that encapsulated a tv4 validator instance and is used to check parameter types. We have a JSON schema for each WebIDL type. Listing \ref{code_json_schema_webidl} shows some of these schemas.
 
-\lstset{language=C,caption={JSON Schemas of WebIDL types},label=code_json_schema_webidl}
+\lstset{language=JavaScript,caption={JSON Schemas of WebIDL types},label=code_json_schema_webidl}
 \begin{code}
 {
   "byte"               : {"type": "integer", "maximum": 127, 
@@ -252,7 +252,7 @@ Now that we have the notation and the validator, all we need to do is use it in 
 
 To define dictionary types, we simply use schema references. For example, Listing \ref{code_json_schema_xyz_dictionary} shows a dictionary definition as a JSON schema.
 
-\lstset{language=C,caption={JSON schema of a dictionary definition},label=code_json_schema_xyz_dictionary}
+\lstset{language=JavaScript,caption={JSON schema of a dictionary definition},label=code_json_schema_xyz_dictionary}
 \begin{code}
 {
   "name": "XYZ",

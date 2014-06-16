@@ -1,6 +1,6 @@
 \section{Getting Started Guide} % (fold)
 \label{sec:end_to_end_example}
-Now that we've discussed the design and implementation of the RPC Framework and generators, we show here a concrete example that illustrates how the implementation works, by referring to the relevant design section at each stage. This is in the form of the Native Calls getting started guide. The guide was published on GitHub in order to get anyone to easily use the Native Calls framework from scratch.
+Now that we've discussed the design and implementation of the RPC Framework and generators, we show here a concrete example that illustrates how the implementation works. This is in the form of the Native Calls getting started guide. The guide was published on GitHub in order to get anyone to easily use the Native Calls framework from scratch. The original guide includes introductions to Native Client, the idea, and so on as well as setup instructions. But we remove these details for brevity.
 
 This guide shows how to create a simple C++ library using Native Calls.
 We will create a complex number calculator using a C++ native module.
@@ -421,18 +421,18 @@ Complex.Calculator.add({r:10, i:10}, {r:5, i:-10}, function(result){
 We can see the data being transferred in the console:
 
 \begin{verbatim}
-[NaClModule:Complex] →  {
-                          "jsonrpc":"2.0",
-                          "method":"Calculator::add",
-                          "id":3,
-                          "params":[{"r":10,"i":10},{"r":5,"i":-10}]
-                        }
+[NaClModule:Complex] ->  {
+                           "jsonrpc":"2.0",
+                           "method":"Calculator::add",
+                           "id":3,
+                           "params":[{"r":10,"i":10},{"r":5,"i":-10}]
+                         }
 
-[NaClModule:Complex] ←  {
-                         "jsonrpc":"2.0",
-                         "id":3,
-                         "result":{"i":0,"r":15}
-                        }
+[NaClModule:Complex] <-  {
+                           "jsonrpc":"2.0",
+                           "id":3,
+                           "result":{"i":0,"r":15}
+                         }
 \end{verbatim}
 
 And finally the result being logged:

@@ -54,7 +54,7 @@ Despite these issues, the Native Calls project was heavily influenced and inspir
 \label{sec:node_js_c_bindings}
 Node.js is a JavaScript platform built on top of Chrome's V8 JavaScript engine that allows running JavaScript on server-side applications. Listing \ref{code_nodejs_http_server} shows an example of a node.js HTTP server.
 
-\lstset{language=C,caption={A simple node.js HTTP server},label=code_nodejs_http_server}
+\lstset{language=JavaScript,caption={A simple node.js HTTP server},label=code_nodejs_http_server}
 \begin{code}
 var http = require('http');
 http.createServer(function (req, res) {
@@ -99,7 +99,7 @@ Handle<Value> MyObject::PlusOne(const Arguments& args) {
 
 Now, we can create an instance of the object in JavaScript as though it was a native JavaScript object. Listing \ref{code_nodejs_cpp_js_object} shows an example of this.
 
-\lstset{language=C,caption={Using the C++ object from JavaScript},label=code_nodejs_cpp_js_object}
+\lstset{language=JavaScript,caption={Using the C++ object from JavaScript},label=code_nodejs_cpp_js_object}
 \begin{code}
 var obj = new addon.MyObject(10);
 console.log( obj.plusOne() ); // 11
@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
 \end{lstlisting}
 
 
-\lstset{language=C,caption={JavaScript client for Thrift service},label=code_thrift_js_client}
+\lstset{language=JavaScript,caption={JavaScript client for Thrift service},label=code_thrift_js_client}
 \begin{lstlisting}
 function calc() {
   var transport = new Thrift.Transport("/thrift/service/tutorial/");
@@ -249,7 +249,7 @@ In general, JavaScript implementations of the JSON RPC protocol are very simple,
 
 Although there are many implementations in JavaScript that are for several different domains and use cases, we discuss a simple one that uses \lstinline{postMessage} for transferring the JSON messages between browser windows, called ``PostMessage RPC (pmrpc)''. pmrpc is an open source library available on GitHub\cite{pmrpc} which aims to simplify cross-window communication by using postMessage. It shows the simplicity of remote procedure calls using JSON RPC. Listing \ref{code_prmpc_example} shows an example of using pmrpc to set up and call remote procedures between two windows.
 
-\lstset{language=C,caption={Using pmrpc to communicate between two windows},label=code_prmpc_example}
+\lstset{language=JavaScript,caption={Using pmrpc to communicate between two windows},label=code_prmpc_example}
 \begin{code}
 // in the callee window, expose a procedure
 pmrpc.register({

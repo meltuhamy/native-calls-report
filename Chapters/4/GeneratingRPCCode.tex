@@ -47,7 +47,7 @@ We use the augmented AST as a \emph{context} to be passed to the template engine
 
 Because the parser we used produces an AST in JavaScript, it made sense to have the generator in JavaScript too. This means we had to find a JavaScript template engine. There is more than a dozen template engine available to choose from, however, to simplify the templates and make them as human-readable as possible, we decided to limit our search only to templates with simple markup and logics. One template notation stood out, mustache\cite{mustache}. Mustache is an elegant, simple, templating language used across many languages. We decided to go with it because of its good documentation on its notation, its popularity, and its simplicity. However, several implementations of mustache existed. There was mustache.js\cite{mustachejs}, handlebars\cite{handlebarsjs}, and hogan\cite{hoganjs} by twitter. After considering each implementation, we found that they were very similar. We decided to choose hogan for its simplicity, speed, and extra features.
 
-\lstset{language=C,caption={An example of a template context},label=code_template_context_eg}
+\lstset{language=JavaScript,caption={An example of a template context},label=code_template_context_eg}
 \begin{code}
 {
   timestamp: "Thu May 08 2014 21:38:16 GMT+0100 (BST)",

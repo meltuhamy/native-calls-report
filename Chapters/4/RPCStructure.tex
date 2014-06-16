@@ -52,7 +52,7 @@ To implement the transport layer using a Native Client module, we first encapsul
 
 All this detail is configured through the NaClModule constructor, which takes in an object for configuration. In other words, the same \lstinline{embed} tag is created (but not actually placed on the page \emph{yet}), using the following code:
 
-\lstset{language=C,caption={Constructing a NaClModule Object},label=code_construct_naclmodule}
+\lstset{language=JavaScript,caption={Constructing a NaClModule Object},label=code_construct_naclmodule}
 \begin{code}
 var myModule = new NaClModule({
   src: 'rpc-module.nmf', 
@@ -64,7 +64,7 @@ var myModule = new NaClModule({
 
 However, much of the details of this can be `inferred' using the name of the module:
 
-\lstset{language=C,caption={Construct a NaClModule using attribute inference},label=code_construct_naclmodule_attrinf}
+\lstset{language=JavaScript,caption={Construct a NaClModule using attribute inference},label=code_construct_naclmodule_attrinf}
 \begin{code}
 // creates an embed tag with the same attributes
 var myModule = new NaClModule({"name": "MyModule"});
@@ -72,7 +72,7 @@ var myModule = new NaClModule({"name": "MyModule"});
 
 The attributes are inferred by using the NaClConfig global object, or a default config object if one does not exist. The id attribute is the same as the name attribute. The name and the type are inferred using the config object. Listing \ref{code_naclconfig_example} shows an example of a config object and the corresponding embed attributes.
 
-\lstset{language=C,caption={Setting a NaClConfig object},label=code_naclconfig_example}
+\lstset{language=JavaScript,caption={Setting a NaClConfig object},label=code_naclconfig_example}
 \begin{code}
 // the NaClConfig object is a global object. 
 // If required keys aren't found here, they are looked up in a 
@@ -93,7 +93,7 @@ var myModule = new NaClModule({"name": "MyModule"});
 
 Once a NaClModule is constructed, it can be loaded using the \lstinline{load} method, which can take in an optional callback function as a parameter. The load method essentially inserts the \lstinline{embed} element into the page. Event handlers can be registered with the module by using the \lstinline{on} method. For example:
 
-\lstset{language=C,caption={Registering different event handlers to a module},label=code_registering_event_handler}
+\lstset{language=JavaScript,caption={Registering different event handlers to a module},label=code_registering_event_handler}
 \begin{code}
 var myModule = new NaClModule({"name": "MyModule"});
 myModule.on('load', function(){...});
@@ -195,7 +195,7 @@ The role of the runtime is different depending on the caller and the callee. Due
 
 We first consider the implementation of the caller's RPC runtime, implemented in JavaScript. To make a RPC request, the sendRequest function is called. The remote method name, parameters, success callback, and error callback are passed to this function. The runtime then constructs a RPC Request object, and gives the request a unique ID. The callbacks are added to a map of ids to callbacks. The listing below shows an example instance of a map, where two RPC requests have been made and are still waiting for responses.
 
-\lstset{language=C,caption={An example of an  id-callback map},label=code_id_callback_map}
+\lstset{language=JavaScript,caption={An example of an  id-callback map},label=code_id_callback_map}
 \begin{code}
 {
   1: {
@@ -215,7 +215,7 @@ We first consider the implementation of the caller's RPC runtime, implemented in
 
 Finally, the request object is sent. When the C++ server handles the request and sends back a response, the same ID is sent back. The JSON RPC Layer (described above) will handle the message and call one of the runtime's handlers. If it was a response, it will call the response handler. If it was an error, it will call the error handler. In either, the runtime will look for response's id inside the map. If the ID exists in the map, then the appropriate callback is called and then the key/value pair is removed from the map. The listing below shows how this is implemented for the case of a successful response.
 
-\lstset{language=C,caption={The handle callback method in JavaScript},label=code_handle_callback_js}
+\lstset{language=JavaScript,caption={The handle callback method in JavaScript},label=code_handle_callback_js}
 \begin{code}
   RPCRuntime.prototype.handleCallback = function(rpcObject){
     // see if that id is even registered with us
@@ -282,7 +282,7 @@ However, to make it more useful for the JavaScript developer, the RPC framework 
 
 What we want to achieve on the JavaScript side is the ability to access the defined modules, interfaces, and most importantly functions on the C++ side in the most natural way possible. We achieve this by dynamically constructing a JavaScript object that holds all this information. The object maps interface names to maps of function names to function stubs. To make this clearer, here is an example of such an object, which we shall call an RPC Module.
 
-\lstset{language=Python,caption={An example RPC Module in JavaScript},label=code_rpcmodule_example}
+\lstset{language=JavaScript,caption={An example RPC Module in JavaScript},label=code_rpcmodule_example}
 \begin{code}
 {
   "MyInterface": {
@@ -297,7 +297,7 @@ What we want to achieve on the JavaScript side is the ability to access the defi
 
 Now, to call \lstinline{foo}, we call \lstinline{MyInterface.foo()}. This gives a very natural way of using RPC functions in JavaScript, as that is exactly what they are - functions! We now finally look at how the actual stub function is implemented. This happens in JavaScript stub layer's \lstinline{constructFunction} method. Essentially, it takes in a function definition as a JavaScript object, and returns a JavaScript function that is the stub. In that sense, the function definition is made \emph{declarative}, a feature which makes the generator's job (discussed later) much simpler. Here is an example of a function definition:
 
-\lstset{language=C,caption={A function definition object},label=code_functiondef_jsstub}
+\lstset{language=JavaScript,caption={A function definition object},label=code_functiondef_jsstub}
 \begin{code}
 {
   "name": "foo",
@@ -308,7 +308,7 @@ Now, to call \lstinline{foo}, we call \lstinline{MyInterface.foo()}. This gives 
 
 Then, the \lstinline{constructFunction} method will take this object and use the information in it to produce a JavaScript function. The JavaScript function will do the type checking discussed earlier, but most importantly, it will call the RPC runtime to actually execute the RPC request. Here is a simplified example of a produced function:
 
-\lstset{language=C,caption={A user stub function dynamically produced},label=code_js_stub}
+\lstset{language=JavaScript,caption={A user stub function dynamically produced},label=code_js_stub}
 \begin{code}
 function(){
   // get arguments dynamically
