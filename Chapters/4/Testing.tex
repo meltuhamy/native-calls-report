@@ -17,8 +17,7 @@ Because the project is implemented on both C++ and JavaScript, tests had to be w
 \label{sub:karma_test_runner}
 Karma test runner\footnote{\url{http://karma-runner.github.io/}} is a test runner framework implemented at Google that makes running JavaScript tests easy. It was designed to simplify and speed up test-driven development for JavaScript. It works by letting the developer specify a configuration that states which files should be loaded, then the tests are run directly from the command line. This means the developer does not need to open a browser manually every time they want to run the tests.
 
-Karma has been used extensively in this project to test the client side JavaScript and C++. More about configuring Karma to load C++ tests is described in the design section.
-%TODO: link
+Karma has been used extensively in this project to test the client side JavaScript and C++.
 
 % subsection karma_test_runner (end)
 
@@ -49,5 +48,29 @@ I decided to use googletest for its simple syntax, portability (as it was includ
 
 \subsection{Creating a unified testing environment} % (fold)
 \label{sub:creating_a_testing_framework}
-TODO.
+During the initial stages of the project, a lot of time was spent finding a way to efficiently run unit tests for the generator, JavaScript library, and C++ library. 
+
+A sort of framework built on top of Jasmine, googletest, and karma was developed in order to test the C++ library. Essentially, how this worked was as follows:
+
+\begin{itemize}
+	\item A single JavaScript test written for Jasmine was created \\
+	``\lstinline{it should not fail any C++ tests}''. 
+	\item The body of the test loaded a Native Client module. The Native Client module was a single executable which linked \emph{all} the C++ library tests together.
+	\item When a test passed or failed, a message was sent to the JavaScript using \lstinline{PostMessage}. This told the test suite the progress of the test.
+	\item When a C++ test \emph{failed}, the message received in JavaScript caused the test to throw an error and therefore the JavaScript test would fail.
+	\item When \emph{all} the C++ tests passed, a message is sent to JavaScript which caused the test to pass
+\end{itemize}
+
+So in the end, passing the JavaScript test was equivalent to passing all the C++ tests. When a C++ test failed, detailed information would be provided in the terminal to indicate what assertion was broken, etc. 
+
+Now, when we create a karma configuration to run the JavaScript test, it means we are able to run the C++ tests from the terminal. In other words, we are able to test the C++ Native Client module in the browser without having to open a browser manually. This saved a tremendous amount of time when doing TDD.
+
+The final issue which we had to solve was how to test the C++ code for the different NaCl SDK tool chains available (for information about tool chains, read background section \ref{sec:native_client_development} on page \pageref{sec:native_client_development}). The issue was how to test the NaCl module which was built using a specific tool chain using the terminal (e.g. \lstinline{make TOOLCHAIN=newlib CONFIG=Debug}), given that the \emph{JavaScript} code that loaded the module hard coded this information? 
+
+The solution was to pass this information down to the JavaScript test using karma, through the main Makefile. We create a Makefile target called \lstinline{cpptest}. When we run \lstinline{make cpptest}, karma is started, the JavaScript test runs - which loads the C++ test module, which runs the C++ tests. Now, when we run \lstinline{make cpptest TOOLCHAIN=newlib CONFIG=Debug}, karma is started with some extra command line options. Karma passes the command line options to the JavaScript by embedding them inside the HTML page. Now, our JavaScript test can use this information to correctly find and load the correct NaCl manifest and pexe/nexe.
+
+These techniques were also done for the end to end tests, which loaded modules of different tool chains and configurations too, based on the command line arguments.
+
+In the end, we created a Makefile target \lstinline{make test} which automatically ran all the JavaScript, generator, C++, and end to end tests automatically, from the terminal.
+
 % subsection creating_a_testing_framework (end)

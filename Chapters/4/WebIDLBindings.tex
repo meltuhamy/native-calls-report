@@ -30,9 +30,10 @@ In C++, a module is represented as a class, which sets up the module. When setti
 
 \subsection{Number and String Types} % (fold)
 \label{sub:number_types}
-WebIDL defines a number of numeric types, and also provides the JavaScript bindings for each type. The table below (TODO: give ref) shows the numeric types and their bindings in C++.
+WebIDL defines a number of numeric types, and also provides the JavaScript bindings for each type. Table \ref{table:webidl_cpp_numbers} shows the numeric types and their bindings in C++.
 
 \begin{table}[h]
+\centering
 \begin{tabular}{l|lll}
 \textbf{WebIDL Type} & \textbf{Min int} & \textbf{Max int} & \textbf{C++ Type}  \\ \hline
 byte                 & $-2^{7}$         & $2^{7}-1$        & int8\_t            \\
@@ -46,6 +47,8 @@ unsigned long long   & $0$              & $2^{64}-1$       & uint64\_t          
 float                &                  &                  & float              \\
 double               &                  &                  & double           
 \end{tabular}
+\caption{The C++ WebIDL bindings for number types}
+\label{table:webidl_cpp_numbers}
 \end{table}
 
 It can be observed that the integer types are represented in C++ with the size information in it, even though C++ has equivalent type names for each of the WebIDL integer types. For example, C++ supports the \lstinline{short} type, but we explicitly decide to represent \lstinline{short} as \lstinline{int16_t}. The reason why explicit size information is included in the type is because of different implementations of certain types. For example, depending on the C++ standard library implementation we use, a \lstinline{long} can be represented in 32 bits or 64 bits. But because WebIDL explicitly defines the actual size of the integer types, to stick to the standard, we can't tolerate this variation. For this reason, we use the explicit size types as shown above. This issue does not arise for \lstinline{float} and \lstinline{double} types as both C++ and JavaScript adhere to the IEEE 754 format.
@@ -141,47 +144,129 @@ In the end, I decided to go for the vector approach, for the following reasons:
 	\item Vectors are generally how C++ developers represent collections of items, so most of the time it is fine to use the \lstinline{std::vector} library.
 \end{itemize}
 
-\subsubsection{Transferring contiguous number types as binary} % (fold)
-\label{ssub:transferring_binary}
-TODO: Move this to future work section
-
-So far we have been discussing how to transfer a sequence of any type. This is represented in WebIDL as \lstinline{sequence<T>}, where \lstinline{T} could be any type, including dictionary types. But there is one case where it makes sense to send the data as binary data, through the use of ArrayBuffers. This is when we want to send a contiguous array of numeric type, for example, an array of floats. 
-
-Sending binary data in that case is efficient for two reasons. The first is the fact you don't need to marshal the data into a \lstinline{pp::VarArray} type, since the binary buffer can be sent directly using the \lstinline{pp::VarArrayBuffer} class. The second reason is how binary data is transferred in NaCl. When we send an ArrayBuffer to/from JavaScript, instead of the data being copied, it is shared. Only when the data is written to does the data get copied. This makes transferring ArrayBuffers very efficient - instead of O(n) time, it will probably take O(1) time.
-
-Now, considering the performance gains, if we decide to send and receive contiguous number arrays as ArrayBuffers, a few questions arise. The first is how will the data be represented in JavaScript, and whether or not this representation makes sense in every context. The answer is that in JavaScript, the data will need to be sent and received as an \lstinline{ArrayBuffer}. It's difficult to do anything with an ArrayBuffer though, so in JavaScript, a few more classes were made to help with reading buffers of certain types. These are called ArrayBufferViews. Currently available ArrayBufferViews are \lstinline{Int8Array}, \lstinline{Int16Array}, \lstinline{Int32Array}, \lstinline{Float32Array}, and \lstinline{Float64Array}, and also their unsigned counterparts. These classes allow accessing the data of a buffer as though it was a normal JavaScript array (TODO, show example). So, when we relate these ArrayBufferViews to IDL types, these make sense for byte, short, long, float, and double WebIDL types. The \lstinline{long long} type will be unsupported, but that is understandable, considering JavaScript's number size limitations (as described earlier). In conclusion, the answer to the first question is ``the binary data will be represented in JavaScript as an appropriate ArrayBufferView, and this representation makes sense for most number array types''.
-
-The second question is \emph{when} do we send binary data? To answer the question, we consider when it's possible to send arrays of numbers in general:
-
-\begin{itemize}
-	\item As a parameter
-	\item As a result
-	\item Embedded inside a dictionary or array
-\end{itemize}
-
-We could choose to send and receive binary for \emph{all} the above scenarios, or some. To figure out when to send, we need to run some benchmarks to find how much of a performance improvement it might give.
-
-The third question is how do we accept binary data in C++? The possibilities are either to accept it as a buffer, or a vector. As discussed earlier, however, accepting it as a buffer is problematic since we need to provide the length of the array. Luckily, we can easily and efficiently construct a vector with the same data, by providing a pointer to the data in the constructor of the vector. (TODO: give example). When sending it back, we use the \lstinline{std::vector::data()} method to efficiently get a pointer to the buffer, that we can then use to send.
-
-The fourth and final question we need to ask is how the data is transferred from C++ to JavaScript. The answer is through the \lstinline{pp::VarArrayBuffer} interface. But there arises a problem, to do with copying memory. TODO. Go into details:
-\begin{itemize}
-	\item Show example.
-	\item memcpy is slow.
-	\item possible solution: only transfer binary when we know its size. We know its size from WebIDL.
-\end{itemize}
-
-% subsubsection transferring_binary (end)
-
 % subsection sequence_types (end)
 
 \subsection{Implementation in C++} % (fold)
 \label{sub:webidl_implementation_in_cpp_}
-TODO: Discuss parameter marshalling here.
+To implement WebIDL bindings in C++, we define how types are marshalled when sent and received from JavaScript. The IDL file will define \emph{what} types are expected, whilst the C++ implementation will define \emph{how} the types are accepted and received in the functions we define.
+
+We already discussed the C++ bindings for number and string types. However, these types are sent and received from JavaScript as \lstinline{pp::Var} objects. To convert them, we define a generic \lstinline{RPCType} class, which has static \lstinline{AsVar} and \lstinline{Extract} methods. Other types then inherit from \lstinline{RPCType}. We define a type class for each WebIDL type. For example, Listing \ref{code_webidl_type_marshalling_long} shows the \lstinline{AsVar} and \lstinline{Extract} methods of the WebIDL long type.
+
+\lstset{language=C++,caption={An example of WebIDL type marshalling},label=code_webidl_type_marshalling_long}
+\begin{code}
+pp::Var LongType::AsVar(const ValidType<int32_t>& v){
+  return pp::Var((int) v.getValue());
+}
+
+ValidType<int32_t> LongType::Extract(const pp::Var& v){
+  if(v.is_int()){
+    return ValidType<int32_t>((int32_t)v.AsInt());
+  } else {
+    return ValidType<int32_t>();
+  }
+}
+\end{code}
+
+We do this for each WebIDL type. Now, complex types such as Dictionary and Sequence types use these classes to extract each of the keys and values of the dictionary. For example, Listing \ref{code_dict_marshal_xyz} shows how we convert a \lstinline{XYZ} dictionary type into an \lstinline{XYZ} struct or a \lstinline{pp::Var}. Notice how use the \lstinline{Extract} methods of other WebIDL types, for example \lstinline{FloatType::Extract}. In this way, type extraction is recursive - it is simple to extract dictionaries which have values which are dictionaries, and so on. It also allows generating these classes simpler, since each type is \emph{only} concerned about extracting its own type, thus giving a general, uniform pattern for converting types. In fact, the code shown in Listing \ref{code_dict_marshal_xyz} is actually generated by our generator.
+
+Notice the use of the \lstinline{ValidType} class. This class is simply a wrapper over the C++ type. The reason we have it is to be able to check if a type is valid. If it is constructed without a value, then it is invalid. If it is constructed with a value, then it is valid. Therefore, we can check if the type marshalling and de-marshalling happened successfully by using the \lstinline{isValid} method on the \lstinline{ValidType} wrapper. We do this, for example, in the runtime layer - where we return an error if the type extraction failed, which can happen if an incorrect type was sent to the layer from JavaScript.
+
+\lstset{language=C++,caption={An example of marshalling and de-marshalling a dictionary type called `\lstinline{XYZ}', which is defined to have three float members: \lstinline{x}, \lstinline{y}, and \lstinline{z}.},label=code_dict_marshal_xyz}
+\begin{code}
+ValidType<XYZ> XYZType::Extract(const pp::Var& v){
+  ValidType<XYZ> invalid;
+  if(v.is_dictionary()){
+    pp::VarDictionary vDict(v);
+    XYZ r;
+
+    /* member: x */
+    if(!vDict.HasKey("x")) return invalid;
+    const ValidType< float >& xPart = FloatType::Extract(vDict.Get("x"));
+    if(!xPart.isValid()) return invalid;
+    r.x = xPart.getValue();
+
+    /* member: y */
+    if(!vDict.HasKey("y")) return invalid;
+    const ValidType< float >& yPart = FloatType::Extract(vDict.Get("y"));
+    if(!yPart.isValid()) return invalid;
+    r.y = yPart.getValue();
+
+    /* member: z */
+    if(!vDict.HasKey("z")) return invalid;
+    const ValidType< float >& zPart = FloatType::Extract(vDict.Get("z"));
+    if(!zPart.isValid()) return invalid;
+    r.z = zPart.getValue();
+
+
+    return ValidType<XYZ>(r);
+  }
+  return ValidType<XYZ>();
+}
+
+pp::Var XYZType::AsVar(const ValidType<XYZ>& v){
+  XYZ value = v.getValue();
+  pp::VarDictionary r;
+  /* member: x */
+  r.Set("x", FloatType(value.x).AsVar());
+
+  /* member: y */
+  r.Set("y", FloatType(value.y).AsVar());
+
+  /* member: z */
+  r.Set("z", FloatType(value.z).AsVar());
+
+  return r;
+}
+\end{code}
+
 % subsection webidl_implementation_in_cpp_ (end)
 
 \subsection{Implementation in JavaScript} % (fold)
 \label{sub:webidl_implementation_in_javascript}
-TODO: Discuss parameter type checking here.
+Unlike C++, JavaScript doesn't have strict typing, so it is perfectly normal to send a number to a function which was intending to receive a string. However, in our library, this is bad. In fact, the runtime layer will return an error callback. In order to make it more convenient to the JavaScript developer, the Native Calls JavaScript library also provided type checking. In other words, instead of just sending an object to the C++, because we know what type the C++ function is expecting through the IDL, we can just throw a JavaScript error to tell the developer that that's an illegal call.
+
+To do this, we use \emph{JSON schemas}. JSON schemas are a declarative notation for defining JavaScript object types. We can use a JSON schema validator to check that a JavaScript object agrees with a JSON schema. The JSON schema notation is defined in a specification by the Internet Engineering Task Force (IETF)\footnote{\url{http://json-schema.org/latest/json-schema-core.html}}. Instead of writing our own validator, we use the open source tv4 validator\footnote{\url{https://github.com/geraintluff/tv4}}. To get tv4 to work with our library, it needed to support AMD (see background section \ref{sub:asynchronous_module_definition_} on page \pageref{sub:asynchronous_module_definition_}), so we created a patch for it on GitHub, and the pull request was merged successfully. 
+
+Now that we have the notation and the validator, all we need to do is use it in our library. We created a TypeChecker class that encapsulated a tv4 validator instance and is used to check parameter types. We have a JSON schema for each WebIDL type. Listing \ref{code_json_schema_webidl} shows some of these schemas.
+
+\lstset{language=C,caption={JSON Schemas of WebIDL types},label=code_json_schema_webidl}
+\begin{code}
+{
+  "byte"               : {"type": "integer", "maximum": 127, 
+                                             "minimum": -128},
+  "octet"              : {"type": "integer", "maximum": 255, 
+                                             "minimum": 0},
+  "short"              : {"type": "integer", "maximum": 32767, 
+                                             "minimum": -32768},
+  // ... similar definitions for other number types ...
+  "any"                : {},
+  "float"              : {"type": "number"},
+  "double"             : {"type": "number"},
+  "DOMString"          : {"type": "string"},
+  "boolean"            : {"type": "boolean"},
+  "object"             : {"type": "object"},
+  "null"               : {"type": "null"},
+  "void"               : {"type": "null"}
+};
+\end{code}
+
+To define dictionary types, we simply use schema references. For example, Listing \ref{} shows a dictionary definition as a JSON schema.
+
+\lstset{language=C,caption={JSON schema of a dictionary definition},label=code_json_schema_xyz_dictionary}
+\begin{code}
+{
+  "name": "XYZ",
+  "required": ["x","y","z"],
+  "properties": { "x": {"$ref":"float"},
+                  "y": {"$ref":"float"},
+                  "z": {"$ref":"float"} }
+}
+\end{code}
+
+The \lstinline{$ref} key references another schema. In this case, we reference the \lstinline{float} schema which we defined earlier and showed in Listing \ref{code_json_schema_webidl}. The validator will recursively look up the schemas and validate the objects. So nested dictionaries will be checked recursively. 
+
+The benefit of this is that the type checking code is done entirely declarative and therefore easy to generate automatically. In fact, the schema in Listing \ref{code_json_schema_xyz_dictionary} was generated automatically using a WebIDL definition. In section \ref{ssub:implementing_the_stub_layer} on page \pageref{ssub:implementing_the_stub_layer}, we discuss how we use this notation to define a whole RPC function, interface, and module in JavaScript.
+
 % subsection webidl_implementation_in_javascript (end)
 
 % section webidl_bindings (end)
