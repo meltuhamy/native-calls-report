@@ -2,4 +2,505 @@
 \label{sec:end_to_end_example}
 Now that we've discussed the design and implementation of the RPC Framework and generators, we show here a concrete example that illustrates how the implementation works, by referring to the relevant design section at each stage. This is in the form of the Native Calls getting started guide. The guide was published on GitHub in order to get anyone to easily use the Native Calls framework from scratch.
 
-TODO Insert guide here
+This guide shows how to create a simple C++ library using Native Calls.
+We will create a complex number calculator using a C++ native module.
+I've written this tutorial in a way such that you can follow along and
+write the module yourself.
+
+\hyperdef{}{writing-our-interface-using-web-idl}{\subsection{Writing our
+interface using Web IDL}\label{writing-our-interface-using-web-idl}}
+
+Native Calls works by generating JS and C++ that handles communication
+between your native module and any JavaScript application. To do this,
+you'll need to tell Native Calls what functions you want to expose to
+JavaScript. You do this by writing the interface using Web IDL (which is
+very simple). Native Calls then takes this IDL file and generates the
+code for you.
+
+Let's begin by creating a folder for our complex number calculator
+project.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{mkdir} \NormalTok{complexCalculator}
+\KeywordTok{cd} \NormalTok{complexCalculator}
+\KeywordTok{vim} \NormalTok{complex.idl}
+\end{Highlighting}
+\end{Shaded}
+
+Now, we write our complex number calculator IDL file
+(\texttt{complex.idl}):
+
+\begin{verbatim}
+dictionary complex {
+  double r;
+  double i;
+};
+
+interface Calculator {
+  complex add(complex x, complex y);
+  complex subtract(complex x, complex y);
+  complex multiply(complex x, complex y);
+  complex sum_all(sequence<complex> contents);
+  complex multiply_all(sequence<complex> contents);
+  sequence<double> map_abs(sequence<complex> contents);
+};
+\end{verbatim}
+
+Before moving on, let's take a closer look at the interface.
+
+\subsubsection{Defining dictionary
+types}\label{defining-dictionary-types}
+
+Dictionary types get converted into C++ \texttt{struct}s. On JavaScript,
+they define JavaScript objects. In the above, the \texttt{complex}
+dictionary defines a struct in C++ that has the fields \texttt{r} and
+\texttt{i}. It also defines the JavaScript object with the properties
+\texttt{r} and \texttt{i}.
+
+Once a dictionary is defined, it can be used as a type. Native Calls
+allows many types, as defined in the
+\href{http://www.w3.org/TR/WebIDL/}{Web IDL specification}.
+
+\subsubsection{Defining interfaces}\label{defining-interfaces}
+
+An interface can include definitions for many functions. These functions
+will be exposed to the JavaScript (i.e.~we'll be able to call these
+functions directly from Javascript). In the IDL above, we defined
+\texttt{add}, \texttt{subtract} and \texttt{multiply} which all take two
+paramaters of \texttt{complex} type and return a \texttt{complex} type.
+
+Meanwhile, \texttt{sum\_all} takes a \texttt{sequence} type. Sequences
+get converted into C++ \texttt{std::vector}s, and on JavaScript, they're
+arrays.
+
+\hyperdef{}{generating-the-rpc-module}{\subsection{Generating the RPC
+module}\label{generating-the-rpc-module}}
+
+Now that we've defined the interface for the module, we now pass it to
+the generator. The generator lives in
+\texttt{native-calls/generator/pprpcgen.js} and can be executed
+directly. In the \texttt{complexCalculator} folder, generate the code
+like this:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{~/native-calls/generator/pprpcgen.js} \NormalTok{--package=Complex complex.idl}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{NOTE}: If you installed the package using \texttt{make install},
+you should have the \texttt{pprpcgen} command installed globally. If so,
+you can just type \texttt{pprpcgen -{}-package=Complex complex.idl}, and
+use \texttt{pprpcgen} from any directory. You can also install only the
+generator globally, without cloning the repo, by typing
+\texttt{npm install -g native-calls}.
+
+\texttt{pprpcgen} will create a folder called Complex (matching the
+\texttt{-{}-package} option). Let's take a look inside.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cd} \NormalTok{Complex}
+\KeywordTok{ls}
+\end{Highlighting}
+\end{Shaded}
+
+Using the IDL file, we can see that the generator generated the
+following files:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  \texttt{PPRPCGEN\_Calculator.h} This is the C++ interface that we need
+  to implement
+\item
+  \texttt{ComplexRPC.cpp} This is the C++ RPC library, specific to our
+  Complex number calculator
+\item
+  \texttt{ComplexRPC.js} The javascript file that we can include in our
+  HTML to interface with the C++ library.
+\item
+  \texttt{PPRPCGEN\_ComplexTypes.h} Since we defined some extra types,
+  (the \texttt{complex} dictionary type), this file is generated and
+  includes the corresponding C++ \texttt{struct}.
+\item
+  \texttt{Makefile} Finally, a makefile is generated for us to be used
+  as a template.
+\end{itemize}
+
+Take a look at each file to see how the RPC library works. Most
+importantly let's see what's inside \texttt{Calculator.h} and
+\texttt{ComplexTypes.h}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{less} \NormalTok{PPRPCGEN_ComplexTypes.h}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{//...}
+\KeywordTok{typedef} \KeywordTok{struct} \NormalTok{\{}
+  \DataTypeTok{double} \NormalTok{r;}
+  \DataTypeTok{double} \NormalTok{i;}
+\NormalTok{\} complex;}
+\end{Highlighting}
+\end{Shaded}
+
+As we expected, the dictionary was converted into an equivalent
+\texttt{struct}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{less} \NormalTok{PPRPCGEN_Calculator.h}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{#include "ComplexTypes.h"}
+\OtherTok{#include "nativecalls/RPCType.h"}
+\OtherTok{#include <vector>}
+\KeywordTok{namespace} \NormalTok{pprpcgen\{}
+\KeywordTok{namespace} \NormalTok{Calculator\{}
+\NormalTok{complex add( complex x,  complex y);}
+
+\NormalTok{complex subtract( complex x,  complex y);}
+
+\NormalTok{complex multiply( complex x,  complex y);}
+
+\NormalTok{complex sum_all( std::vector<complex> contents);}
+
+\NormalTok{complex multiply_all( std::vector<complex> contents);}
+
+\NormalTok{std::vector<}\DataTypeTok{double}\NormalTok{> map_abs( std::vector<complex> contents);}
+
+\NormalTok{\}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+We can see that the generator created a header file for us to implement.
+The header file is entirely standard C++, using no extra libraries.
+
+\hyperdef{}{implementing-the-interface}{\subsection{Implementing the
+interface}\label{implementing-the-interface}}
+
+We can now start writing our implementation. The generated
+\texttt{Makefile} requires us to write the implementation in a file
+called \texttt{Calculator.cpp}, matching our interface name
+(\texttt{Calculator.h}), in the same folder
+(\texttt{\textasciitilde{}complexCalculator/Complex/}). Feel free to
+skip over the actual implementation. I've placed it here so you can copy
+it if you've been following along with the tutorial.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{vim} \NormalTok{Calculator.cpp}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OtherTok{#include "PPRPCGEN_Calculator.h"}
+
+\OtherTok{#include <complex>}
+\OtherTok{#include <vector>}
+\KeywordTok{namespace} \NormalTok{pprpcgen\{}
+\KeywordTok{namespace} \NormalTok{Calculator\{}
+\NormalTok{complex add(complex x, complex y)\{}
+  \NormalTok{complex cd;}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) + std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{cd.r = std_cd.real();}
+  \NormalTok{cd.i = std_cd.imag();}
+  \KeywordTok{return} \NormalTok{cd;}
+\NormalTok{\}}
+
+\NormalTok{complex subtract(complex x, complex y)\{}
+  \NormalTok{complex cd;}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) - std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{cd.r = std_cd.real();}
+  \NormalTok{cd.i = std_cd.imag();}
+  \KeywordTok{return} \NormalTok{cd;}
+\NormalTok{\}}
+
+\NormalTok{complex multiply(complex x, complex y)\{}
+  \NormalTok{complex cd;}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> std_cd = std::complex<}\DataTypeTok{double}\NormalTok{>(x.r, x.i) * std::complex<}\DataTypeTok{double}\NormalTok{>(y.r, y.i);}
+  \NormalTok{cd.r = std_cd.real();}
+  \NormalTok{cd.i = std_cd.imag();}
+  \KeywordTok{return} \NormalTok{cd;}
+\NormalTok{\}}
+
+\NormalTok{complex sum_all(std::vector<complex> contents)\{}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> currentSum(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{);}
+  \NormalTok{complex sum;}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+    \NormalTok{complex current_cd = *it;}
+      \NormalTok{currentSum += std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i);}
+  \NormalTok{\}}
+  \NormalTok{sum.r = currentSum.real();}
+  \NormalTok{sum.i = currentSum.imag();}
+  \KeywordTok{return} \NormalTok{sum;}
+\NormalTok{\}}
+
+
+\NormalTok{complex multiply_all(std::vector<complex> contents)\{}
+  \NormalTok{std::complex<}\DataTypeTok{double}\NormalTok{> currentSum(}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{);}
+  \NormalTok{complex sum;}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+    \NormalTok{complex current_cd = *it;}
+      \NormalTok{currentSum *= std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i);}
+  \NormalTok{\}}
+  \NormalTok{sum.r = currentSum.real();}
+  \NormalTok{sum.i = currentSum.imag();}
+  \KeywordTok{return} \NormalTok{sum;}
+\NormalTok{\}}
+
+
+\NormalTok{std::vector<}\DataTypeTok{double}\NormalTok{> map_abs(std::vector<complex> contents)\{}
+  \NormalTok{std::vector<}\DataTypeTok{double}\NormalTok{> r;}
+  \KeywordTok{for}\NormalTok{(std::vector<complex>::iterator it = contents.begin(); it != contents.end(); ++it) \{}
+    \NormalTok{complex current_cd = *it;}
+      \NormalTok{r.push_back(abs(std::complex<}\DataTypeTok{double}\NormalTok{>(current_cd.r, current_cd.i)));}
+  \NormalTok{\}}
+  \KeywordTok{return} \NormalTok{r;}
+\NormalTok{\}}
+
+\NormalTok{\}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Without delving too much into the implementation details, what we wrote
+here was all pure C++. We didn't need to use any libraries (other than
+\texttt{std}), and we simply returned the results, just like we're used
+to doing.
+
+Now, all we have to do is compile and include the library in our html
+file.
+
+\hyperdef{}{building-our-rpc-module}{\subsection{Building our RPC
+Module}\label{building-our-rpc-module}}
+
+For the most part, our generated \texttt{Makefile} will do everything
+for us. Depending on how complex our RPC functions are, we might need to
+tweak it a bit. But for our complex number calculator project, we can
+simply call \texttt{make} and everything will work.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{make}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+  \KeywordTok{CXX}  \NormalTok{pnacl/Release/ComplexRPC.o}
+  \KeywordTok{CXX}  \NormalTok{pnacl/Release/Calculator.o}
+  \KeywordTok{LINK} \NormalTok{pnacl/Release/Complex_unstripped.bc}
+  \KeywordTok{FINALIZE} \NormalTok{pnacl/Release/Complex_unstripped.pexe}
+  \KeywordTok{CREATE_NMF} \NormalTok{pnacl/Release/Complex.nmf}
+\end{Highlighting}
+\end{Shaded}
+
+This build process is actually included from
+\texttt{\$(NACL\_SDK\_ROOT)/tools/common.mk}, which is used to build the
+NaCl SDK's examples. We use it here to make it easy to change toolchain
+and configuration. The default toolchain is \texttt{pnacl} and the
+default config is \texttt{Release}, but we could use any of the
+available toolchains (\texttt{pnacl}, \texttt{newlib}, and
+\texttt{glibc}). For example, we can build the same application using
+newlib by running \texttt{make TOOLCHAIN=newlib}. You can read more
+about the NaCl supported toolchains
+\href{https://developer.chrome.com/native-client/devguide/devcycle/building}{here}.
+
+In the end, a \texttt{.pexe} file is generated along with the
+\href{https://developer.chrome.com/native-client/reference/nacl-manifest-format}{NaCl
+Manifest} (\texttt{Complex.nmf}).
+
+Interestingly, we can package the whole Complex folder into a zip or tar
+file and distribute it for any JavaScript developer to use on their
+website, without even needing to compile it.
+
+\hyperdef{}{using-our-library-from-javascript}{\subsection{Using our
+library from JavaScript}\label{using-our-library-from-javascript}}
+
+We now have a binary native client application that we can include into
+our web application. To include it, we will use the Native Calls
+JavaScript library. The Native Calls JavaScript library was generated
+when we installed the Native Calls library using \texttt{make install}.
+The generated file can be found in
+\texttt{\textasciitilde{}/native-calls/scripts/build/NativeCalls.js}. We
+need to put this file into our html file, along with the generated RPC
+module (\texttt{complexCalculator/Complex/ComplexRPC.js}).
+
+We copy the built \texttt{NativeCalls.js} file into our
+\texttt{complexCalculator} folder, and then we can write our html file
+that uses the library.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cp} \NormalTok{~/native-calls/scripts/build/NativeCalls.js ./}
+\KeywordTok{vim} \NormalTok{index.html}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{<!DOCTYPE }\NormalTok{html}\DataTypeTok{>}
+\KeywordTok{<html>}
+\KeywordTok{<head}\OtherTok{ lang=}\StringTok{"en"}\KeywordTok{>}
+    \KeywordTok{<meta}\OtherTok{ charset=}\StringTok{"UTF-8"}\KeywordTok{>}
+    \KeywordTok{<title>}\NormalTok{Complex Number Calculator}\KeywordTok{</title>}
+    \KeywordTok{<script}\OtherTok{ type=}\StringTok{"text/javascript"}\OtherTok{ src=}\StringTok{"//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.11/require.min.js"}\KeywordTok{></script>}
+    \KeywordTok{<script>}
+\ErrorTok{    require(['./Complex/ComplexRPC.js'], function (ComplexRPC) \{}
+\ErrorTok{        window.Complex = new ComplexRPC();}
+    \NormalTok{\});}
+    \KeywordTok{</script>}
+\KeywordTok{</head>}
+\KeywordTok{<body>}
+\KeywordTok{<h1>}\NormalTok{Complex Number Calculator}\KeywordTok{</h1>}
+\KeywordTok{</body>}
+\KeywordTok{</html>}
+\end{Highlighting}
+\end{Shaded}
+
+Now, all that's left is to see the library in action! To do this, Native
+Client requires that the files are hosted on a server. Let's install a
+configure-free server such as \texttt{serve}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{npm} \NormalTok{install -g serve}
+\end{Highlighting}
+\end{Shaded}
+
+Great, now we can host a server in our \texttt{complexCalculator}
+folder, by simply running serve.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{serve}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{serving} \NormalTok{~/complexCalculator on port 3000}
+\end{Highlighting}
+\end{Shaded}
+
+Now, open chrome and navigate to \texttt{http://localhost:3000/}, then
+open the console to start using the library.
+
+\hyperdef{}{making-remote-procedure-calls-from-javascript}{\subsection{Making
+remote procedure calls from
+JavaScript}\label{making-remote-procedure-calls-from-javascript}}
+
+ With the console open, we can try out some remote procedure calls.
+You'll notice that the functions we exposed using the idl file are
+available to us in the console window. The functions work as you would
+expect, but they are always completely \textbf{asynchronous} since
+\texttt{postMessage} is used as the underlying transfer layer. We can
+see what data is sent and received in the console. Let's call
+\texttt{add} to add two numbers.
+
+\begin{verbatim}
+Complex.Calculator.add({r:10, i:10}, {r:5, i:-10}, function(result){
+  console.debug(result);
+});
+\end{verbatim}
+
+We can see the data being transferred in the console:
+
+\begin{verbatim}
+[NaClModule:Complex] → {"jsonrpc":"2.0","method":"Calculator::add","id":3,"params":[{"r":10,"i":10},{"r":5,"i":-10}]}
+
+[NaClModule:Complex] ← {"id":3,"jsonrpc":"2.0","result":{"i":0,"r":15}}
+\end{verbatim}
+
+And finally the result being logged:
+
+\begin{verbatim}
+Object {i: 0, r: 15}
+\end{verbatim}
+
+This is the expected result. In fact, all remote procedure calls from
+JavaScript take in an extra, optional, 2 paramaters: a success callback
+and an error callback. But what happens if we do not provide the correct
+number of paramaters? The RPC library is able to detect this, by
+throwing an error:
+
+\begin{verbatim}
+Complex.Calculator.add();
+\end{verbatim}
+
+\begin{verbatim}
+TypeError: The function add expects 2 parameter(s) but received 0
+\end{verbatim}
+
+The RPC library also has reasonable type checking. For example if we did
+not pass in an object:
+
+\begin{verbatim}
+Complex.Calculator.add("hello", "world");
+\end{verbatim}
+
+\begin{verbatim}
+TypeError: Parameter 0 has invalid type: string (expected object)
+\end{verbatim}
+
+Client side type-checking is also recursive:
+
+\begin{verbatim}
+Complex.Calculator.add({r:12, i:23}, {r:3 ,i:"not a number"});
+\end{verbatim}
+
+\begin{verbatim}
+TypeError: Parameter 1 has invalid type: string (expected number) [at .i]
+\end{verbatim}
+
+Type checking also happens on the C++ side. In that case, the error
+callback is called.
+
+\subsubsection{Configuration}\label{configuration}
+
+Before the module constructs, we can specify some configuration. We can
+specify the toolchain, config, and whether or not we want client-side
+type checking (as shown above). To do this, we edit the \texttt{script}
+tag that loads the module, and set the global NaClConfig object.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{<script>}
+\OtherTok{window}\NormalTok{.}\FunctionTok{NaClConfig} \NormalTok{= \{}
+  \DataTypeTok{VALIDATION}\NormalTok{: }\KeywordTok{false} \CommentTok{// can also set TOOLCHAIN and CONFIG}
+\NormalTok{\};}
+\ErrorTok{require(['./Complex/ComplexRPC.js'], function (ComplexRPC) \{}
+\ErrorTok{    window.Complex = new ComplexRPC();}
+\NormalTok{\});}
+\KeywordTok{</script>}
+\end{Highlighting}
+\end{Shaded}
+
+Now, when we refresh and make a remote procedure call with incorrect
+types, the callback will be called - i.e.~type checking in the C++ has
+rejected the call.
+
+\begin{verbatim}
+var success = function(result){ console.log(result); };
+var error = function(error){ console.error("ERROR! "+JSON.stringify(error)); };
+Complex.Calculator.add({r:12,i:23},{r:3,i:"not a number"}, success, error);
+\end{verbatim}
+
+\begin{verbatim}
+ERROR! {"code":-32602,"message":"Invalid Params: Param 1 (y) has incorrect type. Expected complex"}
+\end{verbatim}
+
+Turning off JS Validation can increase performance, especially for
+applications that perform many requests per second.
+
