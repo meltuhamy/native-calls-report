@@ -1,5 +1,22 @@
 \chapter{Conclusion}
 \label{Chapter6}
 \lhead{Chapter 6. \emph{Conclusion}} 
+%solutions, challenges, outcomes
 
-TODO
+In this project, we have provided a solution for writing high performance JavaScript applications that use a C++ Native Client modules, in a way that is natural to both the JavaScript developer and C++ developer. To do this, we provide a code generator that produces C++ and JavaScript code in a package that the C++ developer can change and tweak for performance and feature extension. The C++ developer will have to write an interface in WebIDL, then the generator will produce all the boiler-plate code for both JavaScript and C++.
+
+The main challenges were how to map WebIDL types and interfaces to C++ and JavaScript language features, and using a parser to produce human readable JavaScript and C++ code. Other challenges included using PostMessage as a transport layer for a layered RPC framework on both JavaScript and C++, as well as creating a testing framework and a build system based on the Native Client examples to efficiently build and test C++ Native Client modules in the browser.
+
+In the end, we developed the generator and framework and wrote demo applications to test its usability and performance. We concluded that the framework performed well when little data is passed to the RPC functions, however, had a larger performance impact when large amounts of data are sent and received. We found that the code generator saved a lot of development time when compared to previous methods of implementing the same application, but developing object oriented RPC functionality required some more time.
+
+\newpage
+\subsection{Future Work} % (fold)
+\label{sub:future_work}
+\begin{itemize}
+	\item Improve performance by sending binary data when we can. In section \ref{sec:future_extensions} on page \pageref{sec:future_extensions}, we mentioned some design considerations and possible implementation of sending binary data when an array of contiguous number types are sent. This will greatly improve performance since binary data is shared between JavaScript and C++.
+	\item Experiment with different RPC protocols and data types, such as Google Protocol Buffers to see if a performance improvement can be achieved. Because of our layered approach to RPC, this should be feasible and could provide some interesting results.
+	\item Improve performance by allowing the RPC framework to spawn a new thread per request, thus allowing concurrent RPC calls.
+	\item Object oriented generated code. For the evaluation, we showed how it is possible to create an object oriented RPC library by wrapping the RPC calls in JavaScript classes which hold a C++ instance identifier. One future extension to the project would be to allow these classes to be generated automatically.
+	\item Produce a JavaScript fall-back when Native Client is not supported in the browser. This can be done using PepperJS\cite{pepperjs}, a library by Google that uses emscripten\cite{emscripten} to transpile machine code produced by the Native Client compilers, into JavaScript code.
+\end{itemize}
+% subsection future_work (end)

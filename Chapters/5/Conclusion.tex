@@ -1,0 +1,8 @@
+\section{Evaluation Conclusion} % (fold)
+\label{sec:eval_usability_conclusion}
+After looking at two different applications, we can see that for static or singleton-based applications, such as the bullet physics application, the Native Calls library and generators saves a lot of development time and provides a natural, straight forward method of implementing a C++ library usable from JavaScript. However, for object oriented applications, we find that the JavaScript and C++ developer must think about implementing low level details such as instance look up in order to give a object oriented RPC system.
+
+As for performance, we find that the performance impact is negligible for RPC calls with little data. The impact increases with increasing data size.
+
+This makes using Native Calls perfect for singleton-based applications which send and receive little data, while a trade-off must be made for object-oriented applications or applications that send and receive large data.
+% section eval_usability_conclusion (end)
