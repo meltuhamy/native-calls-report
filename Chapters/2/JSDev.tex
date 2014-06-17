@@ -71,10 +71,10 @@ define('MainClass', ['MyClass'], function(MyClass){
 });
 \end{code}
 
-The advantages of using AMD is that we do not need to explicitly insert \lstinline{<script />} tags in the HTML. It also makes it harder to set global variables, as they can only be set through the global \lstinline{window} object, all variables declared are local only to the module. Since the files are asynchronously loaded, there is no need for a build process. Finally, this allows lazily loading scripts only when you need them.
+The advantage of using AMD is that we do not need to explicitly insert \lstinline{<script />} tags in the HTML. It also makes it harder to set global variables, as they can only be set through the global \lstinline{window} object, all variables declared are local only to the module. Since the files are asynchronously loaded, there is no need for a build process. Finally, this allows lazily loading scripts only when you need them.
 A popular implementation of AMD which works in the browser is RequireJS. 
 
-The disadvantages of using AMD is that most of the time, all dependencies are fetched anyway - so there's no need for them to be loaded asynchronously. Also, having many dependencies generates several HTTP requests, which can impact performance. Finally, writing the define function call at every file can often get tedious.
+The disadvantage of using AMD is that most of the time, all dependencies are fetched anyway - so there's no need for them to be loaded asynchronously. Also, having many dependencies generates several HTTP requests, which can impact performance. Finally, writing the define function call at every file can often get tedious.
 % subsection asynchronous_module_definition_ (end)
 
 \subsection{CommonJS Modules} % (fold)
@@ -102,7 +102,7 @@ console.log(i.privatePlusPublic()); // 35
 
 Notice how only the objects in the \lstinline{exports} property are exported, so the \lstinline{private} variable is still only accessible from the MyClass.js file.
 
-The advantages of using CommonJS is that it has a much simpler, straight forward interface. The disadvantage is that it is only implemented natively on server-side projects. However, there is an open source library that allows CommonJS libraries to be used in the browser, called browserify. The tool `builds' the module, by concatenating all the dependencies together with each module. In the end, one script is inserted into the HTML page. The advantage of this is that it is only one HTTP request to get all the JavaScript functionality. One issue is that now, instead of simply reloading the browser every time we need to test some JavaScript, we now need to build the JavaScript using browserify. Although this might have been an issue in the past, nowadays there exist good tooling that improve efficiency, for example, file watchers that build the JavaScript quickly every time a module is saved.
+The advantage of using CommonJS is that it has a much simpler, straight forward interface. The disadvantage is that it is only implemented natively on server-side projects. However, there is an open source library that allows CommonJS libraries to be used in the browser, called browserify. The tool `builds' the module, by concatenating all the dependencies together with each module. In the end, one script is inserted into the HTML page. The advantage of this is that it is only one HTTP request to get all the JavaScript functionality. One issue is that now, instead of simply reloading the browser every time we need to test some JavaScript, we would need to build the JavaScript using browserify. Although this might have been an issue in the past, nowadays there exist good tooling that improve efficiency, for example, file watchers that build the JavaScript quickly every time a module is saved.
 
 % subsection commonjs_modules (end)
 

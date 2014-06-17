@@ -15,7 +15,7 @@ Because the project is implemented on both C++ and JavaScript, tests had to be w
 
 \subsection{Karma Test Runner} % (fold)
 \label{sub:karma_test_runner}
-Karma test runner\cite{karmarunner} is a test runner framework implemented at Google that makes running JavaScript tests easy. It was designed to simplify and speed up test-driven development for JavaScript. It works by letting the developer specify a configuration that states which files should be loaded, then the tests are run directly from the command line. This means the developer does not need to open a browser manually every time they want to run the tests.
+Karma test runner \cite{karmarunner} is a test runner framework implemented at Google that makes running JavaScript tests easy. It was designed to simplify and speed up test-driven development for JavaScript. It works by letting the developer specify a configuration that states which files should be loaded, then the tests are run directly from the command line. This means the developer does not need to open a browser manually every time they want to run the tests.
 
 Karma has been used extensively in this project to test the client side JavaScript and C++.
 
@@ -23,7 +23,7 @@ Karma has been used extensively in this project to test the client side JavaScri
 
 \subsection{JavaScript Testing Framework} % (fold)
 \label{sub:js_test_framework}
-Many testing frameworks exists for JavaScript. The most popular are Jasmine\cite{jasminetest}, QUnit\cite{qunittest} and Mocha\cite{mochatest}. All of them support a similar set of features and APIs. 
+Many testing frameworks exists for JavaScript. The most popular are Jasmine \cite{jasminetest}, QUnit \cite{qunittest} and Mocha \cite{mochatest}. All of them support a similar set of features and APIs. 
 
 \begin{itemize}
 	\item Jasmine: A generic unit testing framework that gives a behavioural driven development (BDD) approach to testing. Jasmine is easy to set up, with little to no configuration. It can work on any JavaScript runtime (browser or node.js).
@@ -71,6 +71,6 @@ The solution was to pass this information down to the JavaScript test using karm
 
 These techniques were also done for the end to end tests, which loaded modules of different tool chains and configurations too, based on the command line arguments.
 
-In the end, we created a Makefile target \lstinline{make test} which automatically ran all the JavaScript, generator, C++, and end to end tests automatically, from the terminal.
+In the end, we created a Makefile target \lstinline{make test} which automatically ran all the JavaScript, generator, C++, and end to end tests automatically from the terminal.
 
 % subsection creating_a_testing_framework (end)

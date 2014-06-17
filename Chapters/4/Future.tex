@@ -23,7 +23,7 @@ We could choose to send and receive binary for \emph{all} the above scenarios, o
 
 The third question is how do we accept binary data in C++? The possibilities are either to accept it as a buffer, or a vector. As discussed earlier, however, accepting it as a buffer is problematic since we need to provide the length of the array. Luckily, we can easily and efficiently construct a vector with the same data, by providing a pointer to the data in the constructor of the vector. When sending it back, we use the \lstinline{std::vector::data()} method to efficiently get a pointer to the buffer, that we can then use to send.
 
-The fourth and final question we need to ask is how the data is transferred from C++ to JavaScript. The answer is through the \lstinline{pp::VarArrayBuffer} interface. But there arises a problem, to do with copying memory. To illustrate the problem, consider how we plan to send the array buffer:
+The fourth and final question we need to ask is how the data is transferred from C++ to JavaScript. The answer is through the \lstinline{pp::VarArrayBuffer} interface. But there arises a problem to do with copying memory. To illustrate the problem, consider how we plan to send the array buffer:
 
 \begin{itemize}
 	\item In the server stub, the concrete function implementation is called, and the result - a \lstinline{std::vector} of numbers - is returned.

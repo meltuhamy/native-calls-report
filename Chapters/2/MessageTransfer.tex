@@ -3,9 +3,9 @@
 
 When designing RPC systems, the data representation of the messages being transferred, including how the parameters are marshalled, needs to be defined. This is because the client and server might have different architectures that affect how data is represented. There are two types of data representation: implicit typing and explicit typing.
 
-Implicit typing refers to representations which do not encode the names or the types of the parameters when marshalling them. Only the values of the parameters are sent. It is up to the sender and receiver to ensure that the types being sent/received are correct, and this is normally done statically through the IDL files which specify how the message will be structured. 
+Implicit typing refers to representations which do not encode the names or the types of the parameters when marshalling them; only the values of the parameters are sent. It is up to the sender and receiver to ensure that the types being sent/received are correct, and this is normally done statically through the IDL files which specify how the message will be structured. 
 
-Explicit typing refers to when the parameter names and types are encoded with the message during marshalling. This increases the size of the messages, but simplifies the process of de-marshalling the parameters.
+Explicit typing refers to when the parameter names and types are encoded with the message during marshalling. This increases the size of the messages but simplifies the process of de-marshalling the parameters.
 
 This section gives an overview of some of the different message formats that can be used with RPC.
 
@@ -48,11 +48,11 @@ This section gives an overview of some of the different message formats that can
 </numbers>
 	\end{code}
 
-	The XML would also need to be parsed to make sense of the data. For example, a `field' tag could be parsed and converted into a C++ data structure, but that would require us to understand the structure we're using. Sometimes the structure is well defined, like in the XML-RPC protocol (see Section \ref{sub:json_xml_rpc_intro}). However, this strict parsing requirement is easier to error check, since if the XML was parsed successfully, we can be more confident that the data type is correct. 
+	The XML would also need to be parsed to make sense of the data. For example, a `field' tag could be parsed and converted into a C++ data structure, but that would require us to understand the structure we are using. Sometimes the structure is well defined, like in the XML-RPC protocol (see Section \ref{sub:json_xml_rpc_intro}). However, this strict parsing requirement is easier to error check, since if the XML was parsed successfully, we can be more confident that the data type is correct. 
 
 	\item[Protocol Buffers] 
 	~\\
-	Google Protocol Buffers are ``a language-neutral, platform-neutral, extensible way of serializing structured data for use in communications protocols, data storage, and more", according to the developer guide\cite{protobufdev}. They are used extensively within many Google products, including AppEngine\footnote{Google AppEngine is a Platform as a Service that allows developers to run their applications on the cloud}. 
+	Google Protocol Buffers are ``a language-neutral, platform-neutral, extensible way of serializing structured data for use in communications protocols, data storage, and more", according to the developer guide \cite{protobufdev}. They are used extensively within many Google products, including AppEngine\footnote{Google AppEngine is a Platform as a Service that allows developers to run their applications on the cloud}. 
 
 	Messages are defined in .proto files. Listing \ref{exampleproto} shows an example, adapted from the Developer Overview.
 	~\\
@@ -79,7 +79,7 @@ message Person {
 }
 	\end{code}
 
-	The .proto file is then parsed and compiled, to generate data access classes used to change the content of an instance of the representation. They also provide the methods required for serialization. These methods are shown in Listing \ref{exampleprotoserialisation}. When serialised data is converted to raw binary.
+	The .proto file is then parsed and compiled, to generate data access classes used to change the content of an instance of the representation. They also provide the methods required for serialization. These methods are shown in Listing \ref{exampleprotoserialisation}.
 
 	\lstset{language=c,caption={Manipulating and serialising a .proto-generated class},label=exampleprotoserialisation}
 	\begin{code}
@@ -100,7 +100,7 @@ cout << "E-mail: " << person.email() << endl;
 	\end{code}
 
 
-	Many RPC implementations which use protocol buffers exist. Although Java, C++, and Python are the languages that are officially supported, people have created open source  implementations for other languages, including JavaScript\cite{protobufjs}.
+	Many RPC implementations which use protocol buffers exist. Although Java, C++, and Python are the languages that are officially supported, developers have created open source  implementations for other languages, including JavaScript \cite{protobufjs}.
 \end{description}
 
 % section data_representation_and_transfer (end)

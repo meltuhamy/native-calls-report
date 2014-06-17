@@ -4,19 +4,19 @@
 \subsection{Open Network Computing (ONC) RPC} % (fold)
 \label{sub:oncrpc_intro}
 
-ONC is a suite of software originally developed and released in 1985 by Sun Microsystems\cite{stevens2004unix}. It provides a RPC system along with an External Data Representation (XDR) format used alongside it. The ONC RPC system implements some tools and libraries that make it easy for developers to specify and use remote functions. These are:
+ONC is a suite of software originally developed and released in 1985 by Sun Microsystems \cite{stevens2004unix}. It provides a RPC system along with an External Data Representation (XDR) format used alongside it. The ONC RPC system implements some tools and libraries that make it easy for developers to specify and use remote functions. These are:
 
 \begin{enumerate}
-	\item \textbf{RPCGen Compiler:} As mentioned earlier, the role of the user and server stubs is to pack and unpack arguments and results of function calls. To pack the arguments, the stub looks at the argument types and matches them with the number of arguments and their types of the server (callee) function definition. Thus, the stubs need to be written with knowledge of the interface of the actual procedures that will be called. We can define these interfaces in an abstract way, so that we could generate these stubs automatically even if the languages used in the different endpoints are different. In ONC RPC and many other systems, this abstract representation is in the form of an Interface Definition Language (IDL) file. When we pass the IDL file into the RPCGen compiler, it automatically generates the stubs we need to perform remote procedure calls.
+	\item \textbf{RPCGen Compiler:} As mentioned earlier, the role of the user and server stubs is to pack and unpack arguments and results of function calls. To pack the arguments, the stub looks at the argument types and matches them with the number of arguments and their types of the server (callee) function definition. Thus, the stubs need to be written with knowledge of the interface of the actual procedures that will be called. We can define these interfaces in an abstract way, so that we could generate these stubs automatically even if the languages used in the endpoints are different. In ONC RPC and many other systems, this abstract representation is in the form of an Interface Definition Language (IDL) file. When we pass the IDL file into the RPCGen compiler, it automatically generates the stubs we need to perform remote procedure calls.
 	\item \textbf{XDR Routines:} These convert the types of the parameters and return values to and from the external data representation. XDR routines exist for many C types, and the system allows you to write your own XDR routines for complex types.
-	\item \textbf{RPC API library:} This is an implementation that fulfils the role of the RPCRuntime described in \ref{sub:rpcruntime_background}. It provides a set of API functions that set up the lower level communication details, binding, and so on.
+	\item \textbf{RPC API library:} This is an implementation that fulfils the role of the RPCRuntime described in \ref{sub:rpcruntime_background}. It provides a set of API functions that set up the lower level communication details, binding, etc.
 \end{enumerate}
 
 Remote procedures in ONC RPC are identified by a program number, a version number, and a procedure number. There also exists a port mapper that map the program number to a port, so that several programs can run on the same remote machine. 
 
 \subsubsection{XDR files}
 \label{sec:xdrsyntax}
-In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{sub:oncrpc_intro}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
+In ONC RPC, the XDR format is used to define RPC definitions. For example, the RPC definition in Listing \ref{samplerpc} defines an interface for a simple function that takes in a character string  and returns a structure containing two fields. As discussed in \ref{sub:oncrpc_intro}, we can see the program number is \lstinline+80000+ and the procedure number of the \lstinline+generate_keypair+ function is \lstinline+1+.
 
 \lstset{language=C,caption={An example RPC definition for a key-pair generator function},label=samplerpc}
 \begin{code}
@@ -37,7 +37,7 @@ program KEYPAIRGEN_PROGRAM
 } = 80000;
 \end{code}
 
-We can use the RPCGen compiler to then create client and server stubs. Passing the definition file \verb+keypairgen.x+ (shown in listing \ref{samplerpc}) into \lstinline+rpcgen+ will produce the following files:
+We can use the RPCGen compiler to then create client and server stubs. Passing the definition file \verb+keypairgen.x+ (shown in Listing \ref{samplerpc}) into \lstinline+rpcgen+ will produce the following files:
 
 \begin{itemize}
 	\item \textbf{keypairgen.h} The header file, which would be included in both client and server code. Includes the actual C definition of the result\_t structure we defined in the XDR.
@@ -46,7 +46,7 @@ We can use the RPCGen compiler to then create client and server stubs. Passing t
 	\item \textbf{keypairgen\_xdr.c} Defines methods for packing more complex structures, such as the \lstinline+key_pair_t+ structure we defined.
 \end{itemize}
 
-Now we need to write the actual implementation of the RPC procedure we wish to call remotely, namely \lstinline+generate_keypair+. This will include the generated header file and follow the specification we defined, as shown in listing \ref{samplerpcImp}. \\
+Now we need to write the actual implementation of the RPC procedure we wish to call remotely, namely \lstinline+generate_keypair+. This will include the generated header file and follow the specification we defined, as shown in Listing \ref{samplerpcImp}. \\
 
 
 \lstset{language=C,caption={An example server-side implementation of the procedure defined in \ref{samplerpc}},label=samplerpcImp}
@@ -86,7 +86,7 @@ Remote objects could also be invoked dynamically at runtime, as CORBA supports d
     \label{fig:corba-interfaces}
 \end{figure}
 
-The ORB core allows the client to create and retrieve references to remote objects via the ORB interface. A client can create an object to get its reference, which is done by RPC calls to factory objects, which return the reference back to the client after creating an instance. When the client has a reference, it can then use it to perform remote method invocations, by dynamic invocations or through the IDL stubs. The client can also get information about the object by using its reference. This is done via the ORB's directory services, which maps object references to information about the object - including its fields, names and other properties.  \cite{vinoski1997corba}
+The ORB core allows the client to create and retrieve references to remote objects via the ORB interface. A client can create an object to get its reference, which is done by RPC calls to factory objects, which return the reference back to the client after creating an instance. When the client has a reference, it can then use it to perform remote method invocations by dynamic invocations or through the IDL stubs. The client can also get information about the object by using its reference. This is done via the ORB's directory services, which maps object references to information about the object - including its fields, names and other properties.  \cite{vinoski1997corba}
 
 % subsection corba_intro (end)
 
@@ -96,7 +96,7 @@ The ORB core allows the client to create and retrieve references to remote objec
 %---------------------------------------------------------------------------------------------------------------------%
 \subsection{JSON-RPC and XML-RPC} % (fold)
 \label{sub:json_xml_rpc_intro}
-XML-RPC is a simple RPC protocol which uses XML (Extended Mark-up Language) to define remote method calls and responses. It uses explicit data typing - the method name and parameters are hard-coded in the message itself. Messages are typically transported to remote servers over HTTP\footnote{Hyper-text transport protocol (HTTP) is the most common transfer protocol used by clients and servers to transfer data on the web}. Many implementations of XML-RPC exist in several different languages. 
+XML-RPC is a simple RPC protocol which uses Extended Mark-up Language (XML) to define remote method calls and responses. It uses explicit data typing - the method name and parameters are hard-coded in the message itself. Messages are typically transported to remote servers over HTTP\footnote{Hyper-text transport protocol (HTTP) is the most common transfer protocol used by clients and servers to transfer data on the web}. Many implementations of XML-RPC exist in several different languages. 
 
 For example, we could represent the RPC function call we defined before (Listing \ref{samplerpc}) as the XML-RPC function call shown in Listing \ref{examplexmlcall}.
 
@@ -136,9 +136,9 @@ The XML-RPC implementation could give a better interface for the XML calls. For 
 </methodResponse>
 \end{code}
 
-XML-RPC supports simple types like integer, double, string, boolean values. It also supports some complex types like arrays, and associative arrays (\lstinline{struct}). An example of this is in Listing \ref{examplexmlresponse}, where our structure has two keys with their respective values. Binary data can be Base64\footnote{Base64 is an encoding scheme that represents binary data as an ASCII string} encoded and sent in a \lstinline{<base64 />} tag. Because of the fixed language, XML-RPC is naturally cross-language compatible, as it is up to the two ends (client and server) to implement and use their own XML parsers and converters. Several libraries in different languages exist that do this.
+XML-RPC supports simple types like integer, double, string, and boolean values. It also supports some complex types like arrays, and associative arrays (\lstinline{struct}). An example of this is in Listing \ref{examplexmlresponse}, where our structure has two keys with their respective values. Binary data can be Base64\footnote{Base64 is an encoding scheme that represents binary data as an ASCII string} encoded and sent in a \lstinline{<base64 />} tag. Because of the fixed language, XML-RPC is naturally cross-language compatible, as it is up to the two ends (client and server) to implement and use their own XML parsers and converters. Several libraries in different languages exist that do this.
 
-XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a simple and light-weight human-readable message format. Its advantages over XML is that it is a lot lighter and simpler. However, XML can be extended to support complex user-defined types using XML-Schemas, which is not possible directly using JSON. JSON-RPC is also a protocol and message format, for which different implementations exist. For example, we can easily represent the RPC call and response shown in Listings \ref{examplexmlcall} and \ref{examplexmlresponse} using the JSON-RPC protocol format as shown in Listing \ref{examplejsonrpc}.
+XML-RPC and JSON-RPC are very similar. JavaScript Object Notation (JSON) is a simple and light-weight human-readable message format. Its advantage over XML is that it is a lot lighter and simpler. However, XML can be extended to support complex user-defined types using XML-Schemas, which is not possible directly using JSON. JSON-RPC is also a protocol and message format, for which different implementations exist. For example, we can easily represent the RPC call and response shown in Listings \ref{examplexmlcall} and \ref{examplexmlresponse} using the JSON-RPC protocol format as shown in Listing \ref{examplejsonrpc}.
 \\
 
 \lstset{language=JavaScript,caption={An example JSON-RPC request and response},label=examplejsonrpc}
@@ -169,7 +169,7 @@ Both XML-RPC and JSON-RPC have well-defined protocols \cite{jsonrpcspec}\cite{xm
 
 \subsection{WebIDL} % (fold)
 \label{sub:webidl_intro}
-WebIDL is a specification \cite{webidlw3c} for an interface definition language that can be used by web browsers. It is used in several projects, including Google Chrome's Blink project\cite{blinkwebidl}.
+WebIDL is a specification \cite{webidlw3c} for an interface definition language that can be used by web browsers. It is used in several projects, including Google Chrome's Blink project \cite{blinkwebidl}.
 
 The WebIDL syntax is similar to ONC RPC's XDR syntax (see section \ref{sec:xdrsyntax}). Listing \ref{webIDLExample} shows the same interface as Listing \ref{samplerpc}, but this time using WebIDL.
 
@@ -187,9 +187,9 @@ interface KEYPAIRGEN {
 
 Just like in ONC RPC, the WebIDL files can be parsed and used to generate stub methods for the client and server. Because they are language independent, the client and server files that are generated could be in different languages. 
 
-Open source parsers exist for WebIDL, and a standard-compliant one is provided in the Chromium project\cite{chromiumwebidlparser}. 
+Open source parsers exist for WebIDL, and a standard-compliant one is provided in the Chromium project \cite{chromiumwebidlparser}. 
 
-There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from GitHub\cite{esidlproject}}. Similarly, bindings for JavaScript also exist\cite{webidljsimplementation}. 
+There are also open source C++ bindings for WebIDL, such as esidl\footnote{esidl is a library provided with the es Operating System project, which is an experimental operating system whose API is written in WebIDL. The WebIDL compiler can be obtained from GitHub \cite{esidlproject}}. Similarly, bindings for JavaScript also exist \cite{webidljsimplementation}. 
 
 % subsection webidl_intro (end)
 

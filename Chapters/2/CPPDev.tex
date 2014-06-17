@@ -18,7 +18,7 @@ To specify the compiler, all that needs to be done is to specify the \lstinline+
 
 There is also a \lstinline+CONFIG+ environment variable that can be set to specify the compiler's optimisation level. This can be \lstinline+Release+ or \lstinline+Debug+.
 
-To illustrate the usage of \lstinline+common.mk+, listing \ref{getting_started_makefile} shows the Makefile from the SDK's getting started example.
+To illustrate the usage of \lstinline+common.mk+, Listing \ref{getting_started_makefile} shows the Makefile from the SDK's getting started example.
 
 \lstset{language=make,caption={Using the common.mk makefile, as seen in the getting started example},label=getting_started_makefile}
 \begin{code}
@@ -63,11 +63,11 @@ As for dynamic libraries (\lstinline+.so+ files), these are only supported using
 \label{sub:naclports}
 Many open source C and C++ libraries have been ported to use the Native Client SDK and toolchains. The Native Client team have made a simple platform called naclports to simplify the porting of existing libraries. 
 
-Most of the time, porting an existing library is straight forward, as libraries often have generated makefiles using, for example, a \lstinline+./configure+ script, which allows specifying the required compilers, linkers, etc. needed for building the library. naclports automatically fills in these details. 
+Most of the time, porting an existing library is straight forward, as libraries often have generated makefiles, for example using a \lstinline+./configure+ script, which allows specifying the required compilers, linkers, etc. needed for building the library. naclports automatically fills in these details. 
 
 Any changes to default build process can be overridden in a script. Any changes to the code of the library can be specified in a patch file, which is applied before the library is built from the original sources.
 
-For example, creating a NaCl port for libpng, an image processing library, is as simple as creating the \lstinline+pkg_info+ file shown in listing \ref{libpng_pkg_info} in naclports. naclports will then automatically download and install the library to the NaCl SDK. Afterwards, the libpng library used normally from any other C/C++ program.
+For example, creating a NaCl port for libpng, an image processing library, is as simple as creating the \lstinline+pkg_info+ file shown in Listing \ref{libpng_pkg_info} in naclports. naclports will then automatically download and install the library to the NaCl SDK. Afterwards, the libpng library used normally from any other C/C++ program.
 
 \lstset{language=make,caption={The libpng naclport \lstinline+pkg_info+ file},label=libpng_pkg_info}
 \begin{code}
@@ -90,7 +90,7 @@ SHA1=a6d0be6facada6b4f26c24ffb23eaa2da8df9bd9
     \label{fig:pp_var_api}
 \end{figure}
 
-To interface with JavaScript, Native Client provides a C and C++ library that allows developers to easily control the browser. One important class that's used in all Native Client modules is the \lstinline{pp::Instance} class, which is initialised when the embed tag is loaded in the HTML page. The class also has the \lstinline{HandleMessage} and \lstinline{PostMessage} functions, which implement message passing between the JavaScript and the C++ module. In JavaScript, JavaScript primitive types as well as reference types can be sent using postMessage. In C++, they are sent and received as \lstinline{pp::Var} objects. Figure \ref{fig:pp_var_api} shows how the \lstinline{pp::Var} classes can be used. 
+To interface with JavaScript, Native Client provides a C and C++ library that allows developers to easily control the browser. One important class that is used in all Native Client modules is the \lstinline{pp::Instance} class, which is initialised when the embed tag is loaded in the HTML page. The class also has the \lstinline{HandleMessage} and \lstinline{PostMessage} functions, which implement message passing between the JavaScript and the C++ module. In JavaScript, JavaScript primitive types as well as reference types can be sent using postMessage. In C++, they are sent and received as \lstinline{pp::Var} objects. Figure \ref{fig:pp_var_api} shows how the \lstinline{pp::Var} classes can be used. 
 
 Notice how C++ types can be extracted using the \lstinline{pp::Var} class. For example, we can extract a C++ \lstinline{double} from the \lstinline{pp::Var} using the \lstinline{pp::Var::AsDouble()} method. Arrays are sent and received as \lstinline{pp::VarArray} objects. JavaScript objects (dictionaries) are sent and received as \lstinline{pp::VarDictionary} objects. Binary data can be sent and received from and to the browser using the \lstinline{pp::VarArrayBuffer} class. The \lstinline{pp::VarArrayBuffer::map()} method returns a pointer to the sent binary data. 
 

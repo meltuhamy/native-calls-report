@@ -12,14 +12,14 @@ To test the framework and applications, we use the following machine specificati
   \item PPAPI version: 34
 \end{itemize}
 
-We use Benchmark JS\cite{benchmarkjs} to easily and accurately measure the amount of time taken to run JavaScript code. Benchmark JS uses high-resolution timers (microsecond precision) and automatically runs the function we wish to test enough times so that it returns statistically significant results. 
+We use Benchmark JS \cite{benchmarkjs} to easily and accurately measure the amount of time taken to run JavaScript code. Benchmark JS uses high-resolution timers (microsecond precision) and automatically runs the function we wish to test enough times so that it returns statistically significant results. 
 % section performance_testing_environment (end)
 
 \section{Application Performance Evaluation} % (fold)
 \label{sec:application_performance_evaluation}
 \subsection{Bullet Physics Performance} % (fold)
 \label{sub:bullet_physics_performance}
-The simplest way to measure how well the physics engine performs using Native Calls RPC is to analyse the frames per second for a range of scenes of varying complexity. We identify what is the biggest impact to the frames per second by measuring how long it takes to make a request and get a response for each frame rendered. We also measure how long it takes to perform the actual simulation step. Finally, we compare these measurements with the original implementation, which was implemented using Native Client Acceleration Modules and tweaked for performance using ArrayBuffers.
+The simplest way to measure how well the physics engine performs using Native Calls RPC is to analyse the frames per second (FPS) for a range of scenes of varying complexity. We identify what the biggest impact to the FPS is by measuring how long it takes to make a request and get a response for each frame rendered. We also measure how long it takes to perform the actual simulation step. Finally, we compare these measurements with the original implementation, which was implemented using Native Client Acceleration Modules and tweaked for performance using ArrayBuffers.
 
 \subsubsection{Setup} % (fold)
 \label{ssub:bullet_performance_setup}
@@ -196,9 +196,9 @@ We can see that scenes A, B, C, D, and E have roughly similar results for both i
 
 \subsubsection{Analysis} % (fold)
 \label{ssub:bullet_physics_performanceanalysis}
-From the graphs and tables, we can obviously see how the performance impact of our framework gets higher and higher with more and more objects being sent. We can see how, for large scenes such as 2000 cubes, the Native Calls implementation performs almost two times worse than the NaClAM implementation. However, for smaller scenes, the two implementations have very similar performance.
+From the graphs and tables, we can obviously see how the performance impact of our framework gets higher and higher with more and more objects being sent. We can see how for large scenes such as 2000 cubes, the Native Calls implementation performs almost two times worse than the NaClAM implementation. However for smaller scenes, the two implementations have very similar performance.
 
-From the graphs, we can see how the Native Calls framework contributes to the performance impact. For example, in Figure \ref{fig:bullet_graph_cube2000}, the large space between the physics simulation time line and the RPC round trip time line is an indication that the framework is doing most of the processing in the RPC call, not the simulation. When we compare this to the NaClAM version in the same figure, it is clear that most of the processing happens in the physics simulation.
+From the graphs we can see how the Native Calls framework contributes to the performance impact. For example, in Figure \ref{fig:bullet_graph_cube2000}, the large space between the physics simulation time line and the RPC round trip time line is an indication that the framework is doing most of the processing in the RPC call, not the simulation. When we compare this to the NaClAM version in the same figure, it is clear that most of the processing happens in the physics simulation.
 
 The most likely reason for these two observations is that the data marshalling on the C++ Native Calls RPC framework implementation negatively impacts the performance. In our implementation, the data is processed in O(n) time in order to convert the received \lstinline{pp::VarArray} array of objects into a \lstinline{std::vector} of \lstinline{struct}s. In section \ref{sec:performance_evaluation} (page \pageref{sec:performance_evaluation}), we find that converting WebIDL dictionaries is also quite slow, compared to converting an array of numbers. When we compare this to the NaClAM implementation, we can see that the NaClAM version has almost O(1) time, since the data is only being read and is shared between the module and JavaScript. This is explained in section \ref{sec:naclam} on page \pageref{sec:naclam}.
 
@@ -259,7 +259,7 @@ We can see that the node-oniguruma version performs much better. This is due to 
 \label{sec:performance_evaluation}
 We used the IDL file shown in Listing \ref{code_webidl_benchmarks} to test transfer and processing performance of individual operations:
 
-\lstset{language=C,caption={WebIDL file used for benchmarking},label=code_webidl_benchmarks}
+\lstset{language=WebIDL,caption={WebIDL file used for benchmarking},label=code_webidl_benchmarks}
 \begin{code}
 dictionary dict {
   DOMString str;

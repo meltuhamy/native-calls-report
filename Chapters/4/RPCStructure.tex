@@ -39,7 +39,7 @@ The important thing is that the transport must provide:
 	\begin{itemize}
 		\item a \lstinline+send+ function, that accepts a payload of any type.
 		\item a constructor which sets a message handler.
-		\item the message handler must be invoked when a message is received. 
+		\item a message handler that must be invoked when a message is received. 
 	\end{itemize}
 \end{itemize}
 
@@ -157,12 +157,12 @@ Therefore, the RPC layer has the following API:
 
 \subsubsection{Choosing a protocol} % (fold)
 \label{ssub:choosing_a_protocol}
-To implement the RPC layer, we need to choose a RPC protocol. We decided to go for the simplest protocol, which is JSON RPC. We discussed the advantages of using JSON RPC in the related work section, but there are also some benefits to do with using PPAPI to implement marshalling. Since we are using \lstinline{pp::Var}, more or less all of the JavaScript types are marshalled for us using PPAPI when we use postMessage. One alternative would have been to implement a binary based protocol, like the Ice protocol, which uses Google Protocol Buffers. There are a couple of reasons why we did not take this approach. The first is that there is an extra marshalling step in both JavaScript and C++, since we're sending and receiving binary. This adds to the complexity of both ends. The other issue is that Protocol Buffers for JavaScript aren't officially supported by Google, they are just implemented by a member of the open source community on GitHub. Finally, it is unclear whether a performance gain or loss will be achieved when we use Protocol Buffers. However, if time permitted, it would have been an interesting experiment to test different protocol implementations and measure their performance characteristics. But for now, we decided to go for the simplest approach of using JSON RPC via PPAPI.
+To implement the RPC layer, we needed to choose a RPC protocol. We decided to go for the simplest protocol, which is JSON RPC. We discussed the advantages of using JSON RPC in the related work section, but there are also some benefits to do with using PPAPI to implement marshalling. Since we are using \lstinline{pp::Var}, more or less all of the JavaScript types are marshalled for us using PPAPI when we use postMessage. One alternative would have been to implement a binary based protocol, like the Ice protocol, which uses Google Protocol Buffers. There are a couple of reasons why we did not take this approach. The first is that there is an extra marshalling step in both JavaScript and C++ as we are sending and receiving binary. This adds to the complexity of both ends. The other issue is that Protocol Buffers for JavaScript aren't officially supported by Google but were instead implemented by a member of the open source community on GitHub. Finally, it is unclear whether a performance gain or loss will be achieved when Protocol Buffers are used. If time permitted, it would have been an interesting experiment to test different protocol implementations and measure their performance characteristics. But for now, we decided to go for the simplest approach of using JSON RPC via PPAPI.
 % subsubsection choosing_a_protocol (end)
 
 \subsubsection{Implementing the JSON RPC Layer} % (fold)
 \label{ssub:implementing_the_jsonrpc_layer}
-To implement the API discussed above for JSON RPC, we first need to implement validators for messages. These determine what kind of message it is - request, response, error, or none. This is done on both the JavaScript and C++ implementations, as both will have to use the protocol. Then, when a message is received, the layer simply uses these validators to check what kind of message it is. At the same time, it extracts the relevant information about the message. For example, if it is a request, it extracts the method name, parameters, etc. 
+To implement the API discussed above for JSON RPC, we first need to implement validators for messages. These determine what kind of message it is - request, response, error, or none. This is done in both the JavaScript and C++ implementations, as both will have to use the protocol. Then, when a message is received, the layer simply uses these validators to check what kind of message it is. At the same time, it extracts the relevant information about the message. For example, if it is a request, it extracts the method name, parameters, etc. 
 
 To implement the JSON RPC protocol validators, we adhere closely to the specification. Detailed unit tests are written, including passing and failing cases. The validator is then written. This is done for both the C++ and JavaScript implementations.
 
@@ -182,8 +182,8 @@ The API the runtime provides is therefore as follows:
 \begin{itemize}
 	\item send functions, that call the layer below.
 	\begin{itemize}
-		\item \lstinline+sendRequest = function(method, parameters, successCB, errorCB)+ this will give the request an ID, then keep track of that ID and the callback functions.
-		\item \lstinline+sendResponse = function(id, result)+ this will just construct a response message and send it to the layer below.
+		\item \lstinline+sendRequest = function(method, parameters, successCB, errorCB)+ will give the request an ID, then keep track of that ID and the callback functions.
+		\item \lstinline+sendResponse = function(id, result)+ will construct a response message and send it to the layer below.
 		\item \lstinline+sendError = function(id, errorCode, errorMessage, errorData)+ will construct an error message and send it to the layer below.
 	\end{itemize}
 	\item handler functions (\lstinline+handleRequest+, \lstinline+handleResponse+, \lstinline+handleError+). The runtime will match the response's identifier with a previously sent request identifier. If a callback was provided, the callback will be called.
@@ -213,7 +213,7 @@ We first consider the implementation of the caller's RPC runtime, implemented in
 \end{code}
 
 
-Finally, the request object is sent. When the C++ server handles the request and sends back a response, the same ID is sent back. The JSON RPC Layer (described above) will handle the message and call one of the runtime's handlers. If it was a response, it will call the response handler. If it was an error, it will call the error handler. In either, the runtime will look for response's id inside the map. If the ID exists in the map, then the appropriate callback is called and then the key/value pair is removed from the map. The listing below shows how this is implemented for the case of a successful response.
+Finally, the request object is sent. When the C++ server handles the request and sends back a response, the same ID is sent back. The JSON RPC Layer (described above) will handle the message and call one of the runtime's handlers. If it was a response, it will call the response handler. If it was an error, it will call the error handler. In either, the runtime will look for response's id inside the map. If the ID exists in the map, then the appropriate callback is called and then the key/value pair is removed from the map. Listing \ref{code_handle_callback_js} shows how this is implemented for the case of a successful response.
 
 \lstset{language=JavaScript,caption={The handle callback method in JavaScript},label=code_handle_callback_js}
 \begin{code}
@@ -242,9 +242,9 @@ Finally, the request object is sent. When the C++ server handles the request and
 
 \vspace{10 mm}
 
-For the callee's RPC runtime, written in C++, the implementation involves finding the required function and then calling it. Since functions aren't first class citizens in C++ (unlike in JavaScript), some thought needs to be put into how to dynamically call a function. The solution we take is to define stub classes for each RPC method. The stub classes are derived from the RPCServerStub class, which has an overrideable \lstinline{virtual pp::Var call(const pp::VarArray* params, RPCError& error);} function. The \lstinline{call} function takes in the parameters and returns the result as a \lstinline{pp::Var}. In other words, all type marshalling and de-marshalling has to happen inside the \lstinline{call} function. 
+For the callee's RPC runtime, written in C++, the implementation involves finding the required function and then calling it. Since functions aren't first class citizens in C++ (unlike in JavaScript), some thought needs to be put into how to dynamically call a function. The solution we took was to define stub classes for each RPC method. The stub classes are derived from the RPCServerStub class, which has an overrideable \lstinline{virtual pp::Var call(const pp::VarArray* params, RPCError& error);} function. The \lstinline{call} function takes in the parameters and returns the result as a \lstinline{pp::Var}. In other words, all type marshalling and de-marshalling has to happen inside the \lstinline{call} function. 
 
-When setting up the RPC Runtime object, we initialise it by adding all the functions we wish to expose. The listing below shows an example of adding RPC stubs to the runtime.
+When setting up the RPC Runtime object, we initialise it by adding all the functions we wish to expose. Listing \ref{code_addrpcstub} shows an example of adding RPC stubs to the runtime.
 
 \lstset{language=C++,caption={Adding RPC stubs to the runtime},label=code_addrpcstub}
 \begin{code}
@@ -256,7 +256,7 @@ rpcRuntime->AddServerStub("MyInterface::Foo", new ServerStub_MyInterface_Foo);
 
 \end{code}
 
-The \lstinline{AddServerStub} method works by simply maintaining a \lstinline{std::map} of \lstinline{std::string} method names to \lstinline{RPCServerStub} objects. Notice how the stubs are `flat' with respect to interfaces. What I mean here is how encapsulation is done using name mangling. This was done to simplify stubs, as in the end, interfaces are singletons which have a straightforward, static, API. In other words, since interfaces are stateless, we only represent the functions that an interface has. This greatly simplifies both the framework and code generation. However, implementing WebIDL interfaces in this way means we are limiting the implementation to only include functions (WebIDL operations), but WebIDL allows defining other interface members such as fields and constants. Since our main concern in this project was to use WebIDL to implement RPC functions we decided to stick to a simple approach of defining functions in C++, which is just through normal, namespaced function definitions in header files. The alternative, which could be a future extension, would have been to implement interfaces as classes. 
+The \lstinline{AddServerStub} method works by simply maintaining a \lstinline{std::map} of \lstinline{std::string} method names to \lstinline{RPCServerStub} objects. Notice how the stubs are `flat' with respect to interfaces. What I mean here is how encapsulation is done using name mangling. This was done to simplify stubs, as in the end, interfaces are singletons which have a straightforward, static, API. In other words, since interfaces are stateless, we only represent the functions that an interface has. This greatly simplifies both the framework and code generation. However, implementing WebIDL interfaces in this way means we are limiting the implementation to only include functions (WebIDL operations), but WebIDL allows defining other interface members such as fields and constants. Since our main concern in this project was to use WebIDL to implement RPC functions we decided to stick to a simple approach of defining functions in C++, which is just through normal, namespaced function definitions in header files. The alternative, which could be a future extension, would be to implement interfaces as classes. 
 
 We hide the details of the ServerStub as this is discussed in the stub layer section (\ref{sub:stub_layer_design}, page \pageref{sub:stub_layer_design}).
 
@@ -272,7 +272,7 @@ Finally, the stub layer is just a wrapper over the runtime layer's API, so that 
 
 \subsubsection{Implementing the stub layer} % (fold)
 \label{ssub:implementing_the_stub_layer}
-There is a distinction between the caller's stub layer (which we call the user stub) and the callee's stub layer (the server stub). The user stub has the job of parameter packing and calling the RPCRuntime's functions. On the other hand, the server stub is \emph{called} by the RPC runtime, and \emph{un}packs the parameter. This distinction can be seen in the RPC diagram shown in background section \ref{sec:rpc_background} on page \pageref{sec:rpc_background}.
+There is a distinction between the caller's stub layer (which we call the user stub) and the callee's stub layer (the server stub). The user stub has the job of parameter packing and calling the RPCRuntime's functions while the server stub is \emph{called} by the RPC runtime, and \emph{un}packs the parameter. This distinction can be seen in the RPC diagram shown in background section \ref{sec:rpc_background} on page \pageref{sec:rpc_background}.
 
 Due to time constraints, RPC functionality has only been implemented one way, from JavaScript to C++. This means only the user stubs have been implemented on the JavaScript side, and only the server stubs have been implemented on the C++ side. We give an overview of these implementations.
 
@@ -343,7 +343,7 @@ function(){
 }
 \end{code}
 
-To implement the C++ server stubs, we define a RPCServerStub class for each concrete function. For example, here is the \lstinline{ServerStub_MyInterface_Foo} class used in listing \ref{code_addrpcstub}.
+To implement the C++ server stubs, we define a RPCServerStub class for each concrete function. For example, here is the \lstinline{ServerStub_MyInterface_Foo} class used in Listing \ref{code_addrpcstub}.
 
 \lstset{language=C++,caption={Defining a server stub in C++},label=code_serverstub_def}
 \begin{code}
@@ -357,9 +357,9 @@ public:
 };
 \end{code}
 
-Notice how we have combined the role of the RPC server stub to include marshalling, de-marshalling and calling the actual function implementation. This was done to simplify the framework on the C++ side, and also to expose some of the implementation details to the C++ developer. This is to allow the C++ developer to tweak the framework in order to get higher performance if they need it, or to customise a specific case. There a few cases where this might be the case. One case is when the developer wants to send and receive binary data. This is currently not supported, due to time constraints. In this case, the developer could go ahead and edit the generated code so that they can pass a \lstinline{pp::Var} to their function. Another example where this might be useful is if the developer wants to make the callback asynchronous, by creating a thread, doing computation, and sending the result at a later time. Again, this is not supported at this stage, but the developer can simply edit the \lstinline{call} function to allow this. In that sense, showing these implementation details gives power to the developer to allow them to do what they want, without forcing them to use a specific way of implementing their code.
+Notice how we have combined the role of the RPC server stub to include marshalling, de-marshalling and calling the actual function implementation. This was done to simplify the framework on the C++ side, and also to expose some of the implementation details to the C++ developer. This allows the C++ developer to tweak the framework in order to get higher performance if they need it, or to customise a specific case. There a few cases where this might be necessary. One case is when the developer wants to send and receive binary data but this is currently not supported, due to time constraints. In this case, the developer could go ahead and edit the generated code so that they can pass a \lstinline{pp::Var} to their function. Another example where this might be useful is if the developer wants to make the callback asynchronous, by creating a thread, doing computation, and sending the result at a later time. Again, this is not supported at this stage, but the developer can simply edit the \lstinline{call} function to allow this. In that sense, showing these implementation details gives power to the developer to allow them to do what they want, without forcing them to use a specific way of implementing their code.
 
-Finally, in listing \ref{code_serverstub_def}, we purposely don't show how the parameter/result (de)marshalling happens. The implementation of this is shown in the WebIDL bindings implementation section \ref{sub:webidl_implementation_in_cpp_} on page \pageref{sub:webidl_implementation_in_cpp_}.
+Finally, in Listing \ref{code_serverstub_def}, we purposely don't show how the parameter/result (de)marshalling happens. The implementation of this is shown in the WebIDL bindings implementation section \ref{sub:webidl_implementation_in_cpp_} on page \pageref{sub:webidl_implementation_in_cpp_}.
 
 % subsubsection implementing_the_stub_layer (end)
 % subsection stub_layer_design (end)

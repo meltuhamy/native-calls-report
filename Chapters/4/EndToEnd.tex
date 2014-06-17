@@ -1,6 +1,6 @@
 \section{Getting Started Guide} % (fold)
 \label{sec:end_to_end_example}
-Now that we've discussed the design and implementation of the RPC Framework and generators, we show here a concrete example that illustrates how the implementation works. This is in the form of the Native Calls getting started guide. The guide was published on GitHub in order to get anyone to easily use the Native Calls framework from scratch. The original guide includes introductions to Native Client, the idea, and so on as well as setup instructions. But we remove these details for brevity.
+Now that we have discussed the design and implementation of the RPC Framework and generators, we show here a concrete example that illustrates how the implementation works. This is in the form of the Native Calls getting started guide. The guide was published on GitHub in order to get anyone to easily use the Native Calls framework from scratch. The original guide includes introductions to Native Client, the idea, and so on as well as setup instructions. But we remove these details for brevity.
 
 This guide shows how to create a simple C++ library using Native Calls.
 We will create a complex number calculator using a C++ native module.
@@ -12,7 +12,7 @@ IDL}\label{writing-our-interface-using-web-idl}
 
 Native Calls works by generating JS and C++ that handles communication
 between your native module and any JavaScript application. To do this,
-you'll need to tell Native Calls what functions you want to expose to
+you will need to tell Native Calls what functions you want to expose to
 JavaScript. You do this by writing the interface using Web IDL (which is
 very simple). Native Calls then takes this IDL file and generates the
 code for you.
@@ -52,7 +52,7 @@ Before moving on, let's take a closer look at the interface.
 \subsubsection{Defining dictionary
 types}\label{defining-dictionary-types}
 
-Dictionary types get converted into C++ \texttt{struct}s. On JavaScript,
+Dictionary types get converted into C++ \texttt{struct}s. In JavaScript,
 they define JavaScript objects. In the above, the \texttt{complex}
 dictionary defines a struct in C++ that has the fields \texttt{r} and
 \texttt{i}. It also defines the JavaScript object with the properties
@@ -337,7 +337,7 @@ our web application. To include it, we will use the Native Calls
 JavaScript library. The Native Calls JavaScript library was generated
 when we installed the Native Calls library using \texttt{make install}.
 The generated file can be found in
-\texttt{\textasciitilde{}/native-calls/scripts/build/NativeCalls.js}. We
+\texttt{\textasciitilde{}/native-calls/scripts}\texttt{/build/NativeCalls.js}. We
 need to put this file into our html file, along with the generated RPC
 module (\texttt{complexCalculator/Complex/ComplexRPC.js}).
 

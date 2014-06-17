@@ -18,6 +18,6 @@ In the end, we developed the generator and framework and wrote demo applications
 	\item Experiment with different RPC protocols and data types, such as Google Protocol Buffers to see if a performance improvement can be achieved. Because of our layered approach to RPC, this should be feasible and could provide some interesting results.
 	\item Improve performance by allowing the RPC framework to spawn a new thread per request, thus allowing concurrent RPC calls.
 	\item Object oriented generated code. For the evaluation, we showed how it is possible to create an object oriented RPC library by wrapping the RPC calls in JavaScript classes which hold a C++ instance identifier. One future extension to the project would be to allow these classes to be generated automatically.
-	\item Produce a JavaScript fall-back when Native Client is not supported in the browser. This can be done using PepperJS\cite{pepperjs}, a library by Google that uses emscripten\cite{emscripten} to transpile machine code produced by the Native Client compilers, into JavaScript code.
+	\item Produce a JavaScript fall-back when Native Client is not supported in the browser. This can be done using PepperJS \cite{pepperjs}, a library by Google that uses emscripten \cite{emscripten} to transpile machine code produced by the Native Client compilers, into JavaScript code.
 \end{itemize}
 % section future_work (end)
