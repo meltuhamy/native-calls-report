@@ -10,13 +10,14 @@ The main challenges were how to map WebIDL types and interfaces to C++ and JavaS
 In the end, we developed the generator and framework and wrote demo applications to test its usability and performance. We concluded that the framework performed well when little data is passed to the RPC functions, however, had a larger performance impact when large amounts of data are sent and received. We found that the code generator saved a lot of development time when compared to previous methods of implementing the same application, but developing object oriented RPC functionality required some more time.
 
 \newpage
-\subsection{Future Work} % (fold)
-\label{sub:future_work}
+\section{Future Work} % (fold)
+\label{sec:future_work}
 \begin{itemize}
+	\item Provide C++ to JavaScript RPC. Whilst we originally set out to provide a multi-directional RPC framework, because of time constraints this was not possible and only JavaScript to C++ RPC was implemented. However, implementing RPC in the other direction is symmetrical in most cases, as several layers including transport and RPC will remain the same.
 	\item Improve performance by sending binary data when we can. In section \ref{sec:future_extensions} on page \pageref{sec:future_extensions}, we mentioned some design considerations and possible implementation of sending binary data when an array of contiguous number types are sent. This will greatly improve performance since binary data is shared between JavaScript and C++.
 	\item Experiment with different RPC protocols and data types, such as Google Protocol Buffers to see if a performance improvement can be achieved. Because of our layered approach to RPC, this should be feasible and could provide some interesting results.
 	\item Improve performance by allowing the RPC framework to spawn a new thread per request, thus allowing concurrent RPC calls.
 	\item Object oriented generated code. For the evaluation, we showed how it is possible to create an object oriented RPC library by wrapping the RPC calls in JavaScript classes which hold a C++ instance identifier. One future extension to the project would be to allow these classes to be generated automatically.
 	\item Produce a JavaScript fall-back when Native Client is not supported in the browser. This can be done using PepperJS\cite{pepperjs}, a library by Google that uses emscripten\cite{emscripten} to transpile machine code produced by the Native Client compilers, into JavaScript code.
 \end{itemize}
-% subsection future_work (end)
+% section future_work (end)

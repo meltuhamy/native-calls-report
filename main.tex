@@ -264,8 +264,11 @@ Mohamed Eltuhamy % Author name - remove the \href bracket to remove the link
 \addtotoc{Abstract} % Add the "Abstract" page entry to the Contents
 
 \abstract{\addtocontents{toc}{\vspace{1em}} % Add a gap in the Contents, for aesthetics
+Google Native Client provides a safe, portable way of embedding native plugins in the web browser. Native Client allows communication between the web page's JavaScript code and the Native Client module's C/C++ code. However, communication is through simple message passing. The project provides a remote procedure call (RPC) framework to allow calling C/C++ functions directly from JavaScript. A layered approach was taken to provide a straight forward RPC architecture. 
 
-TODO Thesis abstract here.
+A generator that uses a standardised Web Interface Definition Language (WebIDL) was implemented, and is used to produce JavaScript and C++ stubs that handle parameter marshalling.
+
+The project is evaluated in terms of performance and amount of development effort saved. We found that the framework's performance impact was negligible for small amounts of data (up to 250 objects) being sent and received, however the impact started to increase linearly with the data size. We found that the generator saved a considerable amount of developer effort, saving 187 lines of code for a bullet physics simulation application, compared to previous implementation methods.
 }
 
 \clearpage % Start a new page
@@ -280,9 +283,9 @@ TODO Thesis abstract here.
 
 I would like to thank my supervisor, Dr. Cristian Cadar, for his advice, suggestions, and feedback regarding the project and report. 
 
-I would also like to than Petr Hosek for his ongoing enthusiasm, ideas, and engaging discussions about the project throughout the year.
+I would also like to thank my co-supervisor, Petr Hosek, for his ongoing enthusiasm, ideas, and engaging discussions about the project throughout the year.
 
-Finally, I would like to thank my family and friends for their ongoing support throughout my degree.
+Finally, I would like to thank my beloved family and friends for their ongoing support throughout my degree.
 
 \vspace{1em}
 \epigraph{\emph{And say, ``My Lord, increase me in knowledge.''}}{\textup{Quran 20:114}}
